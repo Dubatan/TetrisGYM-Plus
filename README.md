@@ -1,4 +1,13 @@
-# TetrisGYM
+# TetrisGYM Plus
+
+TetrisGYM Plus is a fork of [TetrisGYM](https://github.com/kirjavascript/TetrisGYM) by kirjavascript, based on TetrisGYM v6. It keeps every TetrisGYM feature and adds:
+
+* [Duel](#duel) - two player score race on one screen
+* [Patched](#patched) - optional fixes for bugs of the original game
+
+The title menu shows the TetrisGYM version this fork is based on and the Plus version (currently `PLUS V1.0`, based on `V6`).
+
+Everything below is the TetrisGYM documentation, extended by the Plus features.
 
 <div align="center">
     <img src="./assets/screens/menu6.png" alt="Menuscreen">
@@ -29,7 +38,7 @@
     * [Double Killscreen](#double-killscreen)
     * [Invisible](#invisible)
     * [Hard Drop](#hard-drop)
-    * [Duel](#duel)
+    * [Duel](#duel) (Plus)
 * [Level Menu](#level-menu)
 * [Highscores](#highscores)
 * [Tap/Roll Speed Tester](#taproll-speed-tester)
@@ -48,7 +57,7 @@
 * [DAS Only](#das-only)
 * [Qualifier Mode](#qual-mode)
 * [PAL Mode](#pal-mode)
-* [Patched](#patched)
+* [Patched](#patched) (Plus)
 * [Development](#development)
 
 ## Getting Started
@@ -66,7 +75,9 @@ ROM SHA-1: FD9079CB5E8479EB06D93C2AE5175BFCE871746A
 ROM CRC32: 1394F57E
 ```
 
-A link to the BPS can be found on the [releases page](https://github.com/kirjavascript/TetrisGYM/releases).
+A link to the TetrisGYM BPS can be found on the [releases page](https://github.com/kirjavascript/TetrisGYM/releases). TetrisGYM Plus has no release yet, build it yourself as described under [Development](#development).
+
+No ROM is included in this repository.
 
 The BPS produces a file with an MMC1 header, but it also works when treated as CNROM.
 
@@ -519,12 +530,16 @@ Entry delay still depends on the height the piece locked at.
 
 To build, you need a copy of `node` installed on your system. No other dependencies are required.
 
-Provide a `clean.nes` file of the unpatched ROM and run `node build.js`
+Run `node build.js` to create `tetris.nes`. Provide a `clean.nes` file of the unpatched ROM (Tetris (USA)) to additionally create the BPS patch `tetris.bps`.
+
+The title menu version line is set in `src/nametables/game_type_menu.js`.
 
 TetrisGYM supports being built for mappers NROM, MMC1, MMC3, MMC5, and CNROM.
 
 Run `node build.js -h` for a list of build options.
 
 ---
+
+TetrisGYM Plus is based on [TetrisGYM](https://github.com/kirjavascript/TetrisGYM) v6 by kirjavascript and contributors.
 
 This project descends from ejona's [TAUS](https://github.com/ejona86/taus) disassembly and [CelestialAmber's](https://github.com/CelestialAmber/TetrisNESDisasm) subsequent take on it.
