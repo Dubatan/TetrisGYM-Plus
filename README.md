@@ -10,7 +10,7 @@ The title menu shows the TetrisGYM version this fork is based on and the Plus ve
 Everything below is the TetrisGYM documentation, extended by the Plus features.
 
 <div align="center">
-    <img src="./assets/screens/menu6.png" alt="Menuscreen">
+    <img src="./assets/screens/menu-plus.png" alt="Menuscreen">
     <br>
 </div>
 <br>
@@ -265,6 +265,8 @@ Press `up` to hard drop and `select` to sonic drop.
 
 ### Duel
 
+![Duel](./assets/screens/duel.png)
+
 Two player score race on one screen, player 2 uses the second controller.
 
 Both players get the same piece sequence and the same start level. Score (8 digits), lines (4 digits), level (3 digits) and the next piece are shown per player, each playfield has its own level colours.
@@ -511,6 +513,10 @@ You cannot use the Block Tool and Qual mode at the same time.
 Dictate if the NTSC or PAL gameplay mechanics should be used. Should automatically detect region, but can be manually overwritten otherwise.
 
 ## Patched
+
+![Patched](./assets/screens/patched.png)
+
+Level 138 with Patched enabled: normal level colours instead of the glitched palette.
 
 Fixes bugs of the original game that TetrisGYM otherwise keeps for accuracy. Off by default; with it enabled results are not comparable to the original game.
 
