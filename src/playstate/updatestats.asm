@@ -96,6 +96,13 @@ checkLevelUp:
         jmp @nextLevel
 @notSXTOKL:
 
+        lda patchedFlag
+        beq @originalLevelCheck
+        jsr patchedLevelUpCheck
+        bcs @nextLevel
+        bcc @lineLoop
+@originalLevelCheck:
+
         lda lines+1
         sta generalCounter2
         lda lines
@@ -132,6 +139,9 @@ checkLevelUp:
 checkLinecap: ; set linecapState
         ; check if enabled
         lda linecapFlag
+        beq @linecapEnd
+        lda practiseType
+        cmp #MODE_DUEL ; linecap state is not tracked per player
         beq @linecapEnd
         ; skip check if already set
         lda linecapState
@@ -204,6 +214,11 @@ addPoints:
         lda crashModifier
         cmp #CRASH_OFF
         beq @crashDisabled
+        lda patchedFlag
+        bne @crashDisabled
+        lda practiseType
+        cmp #MODE_DUEL
+        beq @crashDisabled
         jsr testCrash
 @crashDisabled:
 
@@ -256,7 +271,56 @@ hundredths := tmpY
 low := tmpZ
 high := tmp3
 
+; patched mode: level up when lines / 10 is greater than the level, so every
+; start level transitions at (level + 1) * 10 lines. The original compares the
+; binary level with the BCD line count as a signed number, which transitions
+; early from start level 10 and breaks down at high levels. Stops at level 255.
+; -> carry set to level up. keeps x and y
+patchedLevelUpCheck:
+        lda levelNumber
+        cmp #$FF
+        beq @no
+        lda lines+1 ; hundreds
+        cmp #26
+        bcs @ret
+        asl
+        sta generalCounter
+        asl
+        asl
+        adc generalCounter ; hundreds * 10, carry is clear
+        sta generalCounter
+        lda lines
+        lsr
+        lsr
+        lsr
+        lsr
+        clc
+        adc generalCounter
+        bcs @ret
+        cmp levelNumber
+        bne @ret
+@no:    clc
+@ret:   rts
+
 addPushDownPoints:
+        lda patchedFlag
+        beq @original
+        ; patched mode: plain holdDownPoints - 1 without the BCD glitches
+        ldx holdDownPoints
+        dex
+        txa
+        clc
+        adc binScore
+        sta binScore
+        bcc @patchedDone
+        inc binScore+1
+        bne @patchedDone
+        inc binScore+2
+        bne @patchedDone
+        inc binScore+3
+@patchedDone:
+        rts
+@original:
         clc
         lda score
         and #$F

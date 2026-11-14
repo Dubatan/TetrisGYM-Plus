@@ -1,4 +1,5 @@
 require('./game');
+require('./duel');
 require('./enter_high_score');
 require('./game_type_menu');
 require('./level_menu');

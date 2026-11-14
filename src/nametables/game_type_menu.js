@@ -61,6 +61,7 @@ drawTiles(buffer, lookup, `
 #a    INVISIBLE               d#
 #a    HARD DROP               d#
 `);drawTiles(extra, lookup, `
+#a    DUEL                    d#
 #a    TAP/ROLL SPEED          d#
 #a    SCORING                 d#
 #a    CRASH                   d#
@@ -76,10 +77,9 @@ drawTiles(buffer, lookup, `
 #a    DAS ONLY                d#
 #a    QUAL MODE               d#
 #a    PAL MODE                d#
-#a                            d#
+#a    PATCHED                 d#
 #a                            d#
 #a V6                         d#
-#a                            d#
 #a                            d#
 #a                            d#
 #a                            d#
@@ -96,7 +96,7 @@ drawTiles(buffer, lookup, `
 `);
 
 if (process.env['GYM_FLAGS']?.match(/-D KEYBOARD=1/)) {
-    drawTiles(extra, lookup, "KEYBOARD", 32 * 15 + 6);
+    drawTiles(extra, lookup, "KEYBOARD", 32 * 17 + 6);
     }
 
 const background = `
@@ -138,7 +138,7 @@ drawTiles(extra, lookup, background);
 drawRect(buffer, 8, 2, 10, 5, 0xB0); // draw logo
 
 const urlX = 3;
-const urlY = 17;
+const urlY = 18;
 drawRect(extra, urlX, urlY, 12, 1, 0x74);
 drawRect(extra, urlX+12, urlY, 12, 1, 0x84);
 
@@ -172,8 +172,8 @@ drawAttrs(extra, [`
     2222222222222222
     2222222222222222
 `, `
-    2333333333333332
     2222222222222222
+    2333333333333332
     2222222222222222
     2222222222222222
     2222222222222222

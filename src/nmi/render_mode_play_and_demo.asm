@@ -13,7 +13,7 @@ render_mode_play_and_demo:
         jsr render_playfield
 @renderLines:
 
-        lda scoringModifier
+        lda scoringEffective
         bne @modernLines
 
         lda renderFlags
@@ -125,7 +125,7 @@ render_mode_play_and_demo:
         lda #$3D
         sta PPUDATA
 @noCrash:
-        lda scoringModifier
+        lda scoringEffective
         cmp #SCORING_HIDDEN
         bne @notHidden
         lda playState
@@ -139,14 +139,14 @@ render_mode_play_and_demo:
         jmp @clearScoreRenderFlags
 @noScoreCap:
 
-        lda scoringModifier
+        lda scoringEffective
         cmp #SCORING_LETTERS
         bne @noLetters
         jsr renderLettersScore
         jmp @clearScoreRenderFlags
 @noLetters:
 
-        lda scoringModifier
+        lda scoringEffective
         cmp #SCORING_SEVENDIGIT
         bne @noSevenDigit
         jsr renderSevenDigit
@@ -154,7 +154,7 @@ render_mode_play_and_demo:
 @noSevenDigit:
 
         ; millions
-        lda scoringModifier
+        lda scoringEffective
         cmp #SCORING_FLOAT
         bne @noFloat
         jsr renderFloat
@@ -245,6 +245,13 @@ updateLineClearingAnimation:
         rts
 .endif
         lda frameCounter
+        ldy patchedFlag
+        beq @unpatched
+        ; patched mode: count from the start of the animation instead of
+        ; the global frame counter, the delay no longer varies by 3 frames
+        sec
+        sbc lineClearPhase
+@unpatched:
         and #$03
         bne @ret
         ; invisible mode show blocks intead of empty
@@ -311,21 +318,7 @@ updatePaletteForLevel:
         ldx #$00
 @loadLevelNumber:
         lda levelNumber,x
-@mod10: cmp #$0A
-        bmi @copyPalettes ; bcc fixes the colour bug
-        sec
-        sbc #$0A
-        jmp @mod10
-
-@copyPalettes:
-        and #$3F
-        tax
-        lda palFlag
-        beq @renderPalettes
-        cpx #$35 ; Level 181 & 245 and'd with $3F (level 53 & 117 are properly mod10'd)
-        bne @renderPalettes
-        ldx #$40
-@renderPalettes:
+        jsr levelToPaletteIndex
         lda #$3F
         sta PPUADDR
         lda #$09
@@ -354,6 +347,39 @@ updatePaletteForLevel:
         sta PPUDATA
 @done:
         rts
+
+; a - level -> x - index into colorTable
+levelToPaletteIndex:
+        ldy patchedFlag
+        beq @mod10
+        ; patched mode: actual level mod 10, no glitched colours from level 138
+@mod100:
+        cmp #100
+        bcc @lessThan100
+        sbc #100
+        bcs @mod100
+@lessThan100:
+        tay
+        lda byteToBcdTable,y
+        and #$0F
+        tax
+        rts
+
+@mod10: cmp #$0A
+        bmi @copyPalettes ; bcc fixes the colour bug
+        sec
+        sbc #$0A
+        jmp @mod10
+
+@copyPalettes:
+        and #$3F
+        tax
+        lda palFlag
+        beq @ret
+        cpx #$35 ; Level 181 & 245 and'd with $3F (level 53 & 117 are properly mod10'd)
+        bne @ret
+        ldx #$40
+@ret:   rts
 
 ; 3 bytes per level in separate tables
 colorTable0:
@@ -418,6 +444,16 @@ incrementPieceStat:
         lda tetriminoTypeFromOrientation,x
         asl a
         tax
+        ; patched mode: stop at 999 instead of running into letters
+        lda patchedFlag
+        beq @count
+        lda statsByType,x
+        cmp #$99
+        bne @count
+        lda statsByType+1,x
+        cmp #$09
+        beq incrementPieceStat_render
+@count:
         lda statsByType,x
         clc
         adc #$01
@@ -440,6 +476,7 @@ incrementPieceStat:
         sta statsByType+1,x
 L9996:  lda generalCounter
         sta statsByType,x
+incrementPieceStat_render:
         lda renderFlags
         ora #RENDER_STATS
         sta renderFlags

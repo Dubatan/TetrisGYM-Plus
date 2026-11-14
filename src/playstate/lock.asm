@@ -72,9 +72,17 @@ playState_lockTetrimino:
         clc
         adc positionValidTmp
         tay
+        cpy #$C8
+        bcc @insidePlayfield
+        ; rows above the playfield. the original keeps these blocks forever,
+        ; where they invisibly obstruct later pieces
+        lda patchedFlag
+        bne @squareDone
+@insidePlayfield:
         lda @currentTile
         ; BLOCK_TILES
-        sta playfield,y
+        sta (playfieldAddr),y ; player 2 playfield in duel mode
+@squareDone:
         inx
         dec generalCounter3
         bne @lockSquare

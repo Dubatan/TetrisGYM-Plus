@@ -30,7 +30,7 @@ isPositionValid:
         clc
         adc positionValidTmp
         tay
-        lda playfield,y
+        lda (playfieldAddr),y ; player 2 playfield in duel mode
         bpl @invalid ; tiles do not set negative flag
         lda orientationTableX,x
         clc

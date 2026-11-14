@@ -1,4 +1,12 @@
 gameModeState_updatePlayer1:
+        lda practiseType
+        cmp #MODE_DUEL
+        bne @singlePlayer
+        ldx #$00
+        jsr duelUpdatePlayer
+        inc gameModeState ; 5
+        rts
+@singlePlayer:
         lda #$04
         sta playfieldAddr+1
         ; copy controller from mirror

@@ -73,6 +73,11 @@ pickRandomTetrimino:
         bne useNewSpawnID
 @invalidIndex:
         ldx #rng_seed
+        lda patchedFlag
+        beq @originalReroll
+        jsr patchedReroll
+        bne useNewSpawnID ; always taken
+@originalReroll:
         jsr generateNextPseudorandomNumber
         lda rng_seed
         and #$07
@@ -96,6 +101,8 @@ pickTetriminoPre:
         beq pickTetriminoT
         ; lda practiseType ; accumulator is still practiseType
         cmp #MODE_SEED
+        beq pickTetriminoSeed
+        cmp #MODE_DUEL
         beq pickTetriminoSeed
         ; lda practiseType
         cmp #MODE_TAPQTY
@@ -162,6 +169,11 @@ pickTetriminoSeed:
         bne @useNewSpawnID
 @invalidIndex:
         ldx #set_seed
+        lda patchedFlag
+        beq @originalReroll
+        jsr patchedReroll
+        bne @useNewSpawnID ; always taken
+@originalReroll:
         jsr generateNextPseudorandomNumber
         lda set_seed
         and #$07
@@ -179,6 +191,19 @@ pickTetriminoSeed:
         lda spawnTable,x
 @useNewSpawnID:
         sta spawnID
+        rts
+
+; patched mode: reroll uniformly over all 7 pieces. The original adds the
+; previous spawn orientation id instead of the piece index, which biases it
+; x - zeropage address of seed -> a: spawn orientation id
+patchedReroll:
+        jsr generateNextPseudorandomNumber
+        lda tmp1,x
+        and #$07
+        cmp #$07
+        beq patchedReroll
+        tay
+        lda spawnTable,y
         rts
 
 setSeedNextRNG:

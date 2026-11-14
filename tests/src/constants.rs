@@ -19,7 +19,7 @@ pub fn test() {
         }
     }
 
-    assert_eq!(menu_options, labels::get("palFlag") + 1 - labels::get("menuVars"));
+    assert_eq!(menu_options, labels::get("patchedFlag") + 1 - labels::get("menuVars"));
 
     // check the menu scroll is correct
     let y_scroll = labels::get("MENU_MAX_Y_SCROLL");

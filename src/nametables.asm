@@ -6,6 +6,8 @@ level_menu_nametable: ; RLE
         .incbin "nametables/level_menu_nametable_practise.bin"
 game_nametable: ; RLE
         .incbin "nametables/game_nametable_practise.bin"
+duel_nametable: ; RLE
+        .incbin "nametables/duel_nametable.bin"
 enter_high_score_nametable: ; RLE
         .incbin "nametables/enter_high_score_nametable_practise.bin"
 rocket_nametable: ; RLE

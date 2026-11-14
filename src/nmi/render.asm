@@ -7,7 +7,8 @@ render: branchTo renderMode, \
             render_mode_rocket, \
             render_mode_speed_test, \
             render_mode_level_menu, \
-            render_mode_linecap_menu
+            render_mode_linecap_menu, \
+            render_mode_duel
 
 .include "render_mode_level_menu.asm" ; no rts / jmp
 
@@ -24,6 +25,7 @@ render_mode_static:
 .include "render_mode_scroll.asm"
 .include "render_mode_speed_test.asm"
 .include "render_mode_play_and_demo.asm"
+.include "render_mode_duel.asm"
 
 .include "render_hz.asm"
 .include "render_input_log.asm"

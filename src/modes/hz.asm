@@ -82,6 +82,9 @@ hzTap:
 
         lda dasOnlyFlag
         beq :+
+        lda practiseType
+        cmp #MODE_DUEL ; hz is only tracked for player 1
+        beq :+
         lda #0
         sta dasOnlyShiftDisabled
 

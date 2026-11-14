@@ -7,6 +7,14 @@ gameModeState_initGameBackground:
 .endif
         jsr bulkCopyToPpu
         .addr   game_palette
+        lda practiseType
+        cmp #MODE_DUEL
+        bne @notDuel
+        jsr copyRleNametableToPpu
+        .addr   duel_nametable
+        jsr duelDrawWins
+        jmp @enablePpu
+@notDuel:
         jsr copyRleNametableToPpu
         .addr   game_nametable
         jsr scoringBackground
@@ -45,6 +53,7 @@ gameModeState_initGameBackground:
         sta PPUDATA
 @heartEnd:
 
+@enablePpu:
         lda #NMIEnable|BGPattern1|SpritePattern1
         sta PPUCTRL
         sta currentPpuCtrl
@@ -59,8 +68,17 @@ gameModeState_initGameBackground:
         rts
 
 scoringBackground:
-        ; draw dot and M
+        ; patched mode: classic score shows hex digits past 999999 and the
+        ; lines counter stops at 3 digits, use 7 digits instead
         lda scoringModifier
+        bne @storeScoring
+        ldy patchedFlag
+        beq @storeScoring
+        lda #SCORING_SEVENDIGIT
+@storeScoring:
+        sta scoringEffective
+        ; draw dot and M
+        lda scoringEffective
         cmp #SCORING_FLOAT
         bne @noFloat
         lda #$21
@@ -104,7 +122,7 @@ scoringBackground:
         lda #$B8
         sta PPUADDR
 
-        lda scoringModifier
+        lda scoringEffective
         cmp #SCORING_SEVENDIGIT
         bne @otherTopScore
 

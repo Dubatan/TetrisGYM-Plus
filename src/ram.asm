@@ -48,7 +48,7 @@ lines: .res 2 ; $0050
 rowY: .res 1 ; $0052
 linesBCDHigh: .res 1 ; $53
 linesTileQueue: .res 1 ; $54
-    .res 1
+lineClearPhase: .res 1 ; $55 ; frameCounter at start of line clear animation (patched mode)
 completedLines: .res 1 ; $0056
 lineIndex: .res 1 ; $0057                        ; Iteration count of playState_checkForCompletedRows
 startHeight: .res 1 ; $0058
@@ -158,11 +158,38 @@ ppuScrollX: .res 1 ; $00FD
 currentPpuMask: .res 1 ; $00FE
 currentPpuCtrl: .res 1 ; $00FF
 
+; offsets into a player's duelState
+D_PLAYSTATE = playState - tetriminoX
+D_VRAMROW = vramRow - tetriminoX
+D_COMPLETEDROW = completedRow - tetriminoX
+D_ROWY = rowY - tetriminoX
+D_LINES = lines - tetriminoX
+D_LINESBCDHIGH = linesBCDHigh - tetriminoX
+D_LEVEL = levelNumber - tetriminoX
+D_COMPLETEDLINES = completedLines - tetriminoX
+D_PHASE = lineClearPhase - tetriminoX
+D_SCORE = 32
+D_BINSCORE = 36
+D_FLAGS = 45
+D_STATUS = 46 ; 0 - playing, 1 - topped out. not part of the swapped state
+
 .bss
 stack: .res $FF ; $0100
     .res 1
 oamStaging: .res $100 ; $0200                        ; format: https://wiki.nesdev.com/w/index.php/PPU_programmer_reference#OAM
-    .res $F0
+
+; duel mode ($0300). tspins mode uses $03B2+ as scratch, keep below that
+DUEL_SIZE = 48
+duelState: .res DUEL_SIZE*2 ; saved state per player, layout in modes/duel.asm
+duelNextBuf: .res 16 ; 4x2 next piece tiles per player
+duelNextShown: .res 2 ; next piece currently in duelNextBuf
+duelWins: .res 2
+duelDirty: .res 1 ; bit 0/1 - next piece p1/p2, bit 7 - wins
+duelBase: .res 1 ; offset into duelState of player being updated
+duelPlayer: .res 1 ; 0/1
+duelTmp: .res 3
+duelNmi: .res 5 ; temporaries only used inside nmi
+    .res $F0-(DUEL_SIZE*2)-16-2-2-1-1-1-3-5
 statsByType: .res $E ; $03F0
     .res 2
 playfield: .res $c8 ; $0400
@@ -232,7 +259,8 @@ highScoreEntryActive: .res 1  ; $064A
     .res $C
 .endif
 
-    .res $35
+scoringEffective: .res 1 ; scoringModifier as used ingame, set in scoringBackground
+    .res $34
 
 musicStagingSq1Lo: .res 1 ; $0680
 musicStagingSq1Hi: .res 1 ; $0681
@@ -340,6 +368,7 @@ garbageModifier: .res 1
 droughtModifier: .res 1
 dasModifier: .res 1
 lowStackRowModifier: .res 1
+duelModifier: .res 1 ; 1 - play until both players topped out
 scoringModifier: .res 1
 crashModifier: .res 1
 strictFlag: .res 1 ;used for crash detection. If 1, the game will register a crash anytime there is a possibility of one.
@@ -354,6 +383,7 @@ linecapFlag: .res 1
 dasOnlyFlag: .res 1
 qualFlag: .res 1
 palFlag: .res 1
+patchedFlag: .res 1
 .if KEYBOARD = 1
 keyboardFlag: .res 1
 .endif

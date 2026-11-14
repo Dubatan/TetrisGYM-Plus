@@ -10,6 +10,8 @@ gameMode_gameTypeMenu:
         sta menuScrollY
         lda #0
         sta hideNextPiece
+        sta duelWins
+        sta duelWins+1
         lda #$1
         sta renderMode
         jsr updateAudioWaitForNmiAndDisablePpuRendering
@@ -566,7 +568,7 @@ menuYTmp := tmp2
         ldx crashModifier
         lda crashOptions, x
         sta spriteIndexInOamContentLookup
-        lda #(MODE_CRASH*8) + MENU_SPRITE_Y_BASE + 1
+        lda #<((MODE_CRASH*8) + MENU_SPRITE_Y_BASE + 1)
         jmp @renderOption
 
 @renderDarkMode:

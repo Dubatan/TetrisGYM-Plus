@@ -1,4 +1,10 @@
 gameModeState_handlePause:
+        lda practiseType
+        cmp #MODE_DUEL
+        bne @singlePlayer
+        jsr duelPause
+        jmp @ret
+@singlePlayer:
         lda renderMode
         cmp #$03
         bne @ret

@@ -86,6 +86,7 @@ MODE_LOWSTACK
 MODE_KILLX2
 MODE_INVISIBLE
 MODE_HARDDROP
+MODE_DUEL
 MODE_SPEED_TEST
 MODE_SCORE_DISPLAY
 MODE_CRASH
@@ -101,6 +102,7 @@ MODE_LINECAP
 MODE_DASONLY
 MODE_QUAL
 MODE_PAL
+MODE_PATCHED
 .if KEYBOARD = 1
 MODE_KEYBOARD
 .endif
@@ -109,10 +111,10 @@ MODE_KEYBOARD
 .if KEYBOARD = 1
 MODE_QUANTITY = MODE_KEYBOARD + 1
 .else
-MODE_QUANTITY = MODE_PAL + 1
+MODE_QUANTITY = MODE_PATCHED + 1
 .endif
 
-MODE_GAME_QUANTITY = MODE_HARDDROP + 1
+MODE_GAME_QUANTITY = MODE_DUEL + 1
 
 SCORING_CLASSIC := 0 ; for scoringModifier
 SCORING_LETTERS := 1
@@ -135,7 +137,7 @@ LINECAP_WHEN_STRING_OFFSET := $10
 LINECAP_HOW_STRING_OFFSET := $12
 
 MENU_SPRITE_Y_BASE := $46
-MENU_MAX_Y_SCROLL := $A0
+MENU_MAX_Y_SCROLL := $B0
 MENU_TOP_MARGIN_SCROLL := 7 ; in blocks
 
 ; menuConfigSizeLookup
@@ -162,6 +164,7 @@ MENU_TOP_MARGIN_SCROLL := 7 ; in blocks
     .byte $0    ; MODE_KILLX2
     .byte $0    ; MODE_INVISIBLE
     .byte $0    ; MODE_HARDDROP
+    .byte $1    ; MODE_DUEL
     .byte $0    ; MODE_SPEED_TEST
     .byte $5    ; MODE_SCORE_DISPLAY
     .byte $3	; MODE_CRASH
@@ -177,6 +180,7 @@ MENU_TOP_MARGIN_SCROLL := 7 ; in blocks
     .byte $1    ; MODE_DASONLY
     .byte $1    ; MODE_QUAL
     .byte $1    ; MODE_PAL
+    .byte $1    ; MODE_PATCHED
 .if KEYBOARD = 1
     .byte $1    ; MODE_KEYBOARD
 .endif
@@ -204,4 +208,5 @@ MENU_TOP_MARGIN_SCROLL := 7 ; in blocks
     .byte   "KILLX2"
     .byte   "INVZBL"
     .byte   "HRDDRP"
+    .byte   " DUEL "
 .endmacro

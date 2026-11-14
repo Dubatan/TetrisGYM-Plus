@@ -158,6 +158,8 @@ playState_checkForCompletedRows:
         cmp #$04 ; check actual height
         bmi playState_checkForCompletedRows_return
 
+        lda frameCounter
+        sta lineClearPhase
         lda #$00
         sta vramRow
         sta rowY

@@ -2,6 +2,8 @@
 
 ## [unreleased]
 
+* Duel: two player score race with per player score, lines, level and next piece
+* Patched: optional fixes for bugs of the original game
 * Fixed a glitch when using Crash Mode + Crunch Mode
 * Fixed some accuracy bugs in Crash Mode
 * Fixed a glitch in Hard Drop Mode

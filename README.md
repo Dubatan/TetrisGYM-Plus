@@ -29,6 +29,7 @@
     * [Double Killscreen](#double-killscreen)
     * [Invisible](#invisible)
     * [Hard Drop](#hard-drop)
+    * [Duel](#duel)
 * [Level Menu](#level-menu)
 * [Highscores](#highscores)
 * [Tap/Roll Speed Tester](#taproll-speed-tester)
@@ -47,6 +48,7 @@
 * [DAS Only](#das-only)
 * [Qualifier Mode](#qual-mode)
 * [PAL Mode](#pal-mode)
+* [Patched](#patched)
 * [Development](#development)
 
 ## Getting Started
@@ -249,6 +251,21 @@ Blocks are invisible until the end of the game.
 ![Hard Drop](./assets/screens/harddrop.png)
 
 Press `up` to hard drop and `select` to sonic drop.
+
+### Duel
+
+Two player score race on one screen, player 2 uses the second controller.
+
+Both players get the same piece sequence and the same start level. Score (8 digits), lines (4 digits), level (3 digits) and the next piece are shown per player, each playfield has its own level colours.
+
+* OFF  
+        The game ends when both players topped out, or as soon as the remaining player has more points than the one who topped out.
+* ON  
+        The game always continues until both players topped out.
+
+Either player can pause. After the result press `start` to return to the level menu. Wins are counted until you return to the main menu.
+
+Trainers, Hz display, block tool, linecap, crash modes and highscores are not available in a duel. PAL Mode and Patched apply.
 
 ## Level Menu
 
@@ -481,6 +498,22 @@ You cannot use the Block Tool and Qual mode at the same time.
 ## PAL Mode
 
 Dictate if the NTSC or PAL gameplay mechanics should be used. Should automatically detect region, but can be manually overwritten otherwise.
+
+## Patched
+
+Fixes bugs of the original game that TetrisGYM otherwise keeps for accuracy. Off by default; with it enabled results are not comparable to the original game.
+
+* Level colours follow level mod 10 at every level, no glitched palettes from level 138
+* Classic score display switches to 7 digits and the lines counter to 4 digits
+* Piece statistics stop at 999
+* The first level transition happens at (start level + 1) × 10 lines for every start level, later ones every 10 lines; the level stops at 255 instead of wrapping to 0
+* Rerolled pieces are chosen evenly, the original favours some pieces depending on the previous one
+* Line clear animation always takes 17 frames instead of 17 to 20 depending on the frame counter
+* Push down points are exactly the pushed rows, without the BCD glitch
+* Blocks locked above the top of the playfield are dropped, the original keeps them as invisible obstacles
+* Crash triggers are disabled
+
+Entry delay still depends on the height the piece locked at.
 
 ## Development
 

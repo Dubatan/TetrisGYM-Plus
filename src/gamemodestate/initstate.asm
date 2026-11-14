@@ -26,6 +26,17 @@ gameModeState_initGameState:
         lda set_seed_input+2
         sta set_seed+2
 
+        ; both duel players draw from their own copy of a random seed
+        lda practiseType
+        cmp #MODE_DUEL
+        bne @notDuelSeed
+        lda rng_seed
+        sta set_seed
+        lda rng_seed+1
+        sta set_seed+1
+        lda #$00
+        sta set_seed+2
+@notDuelSeed:
         ; paceResult init
         lda #$B0
         sta paceResult
@@ -135,6 +146,12 @@ gameModeState_initGameState:
 
         lda #RENDER_STATS|RENDER_HZ|RENDER_SCORE|RENDER_LEVEL|RENDER_LINES
         sta renderFlags
+
+        lda practiseType
+        cmp #MODE_DUEL
+        bne @notDuel
+        jsr duelInit
+@notDuel:
         jsr updateAudioWaitForNmiAndResetOamStaging
 
         lda practiseType
