@@ -78,8 +78,8 @@ drawTiles(buffer, lookup, `
 #a    QUAL MODE               d#
 #a    PAL MODE                d#
 #a    PATCHED                 d#
+#a PLUS V1.0 - TETRISGYM V6   d#
 #a                            d#
-#a V6                         d#
 #a                            d#
 #a                            d#
 #a                            d#
@@ -136,6 +136,9 @@ drawTiles(buffer, lookup, background);
 drawTiles(extra, lookup, background);
 
 drawRect(buffer, 8, 2, 10, 5, 0xB0); // draw logo
+// "PLUS" under the logo, tiles $EA-$EE in title_menu_tileset.png
+[0xEE, 0xEE, 0xEE, 0xEA, 0xEB, 0xEC, 0xED, 0xEE, 0xEE, 0xEE]
+    .forEach((tile, i) => { buffer[7 * 32 + 11 + i] = tile; });
 
 const urlX = 3;
 const urlY = 18;
