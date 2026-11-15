@@ -15,32 +15,34 @@ garbageTypeC:
 
         jsr random10
         adc tmp3
-        tax
+        tay
         jsr swapMino
-        txa
+        tya
 
         sta tmp3
         cmp #$c0
         bcc @loop
         rts
 
+; playfield access is (playfieldAddr),y for the duel player 2 playfield
+
 findTopBulky:
         lda #$0
 @loop:
         sta tmp3 ; line
 
-        tax
+        tay
         lda #0
         sta tmp2 ; line block qty
-        ldy #9
+        ldx #9
 @loopLine:
-        lda playfield, x
+        lda (playfieldAddr), y
         cmp #EMPTY_TILE
         beq @noBlock
         inc tmp2
 @noBlock:
-        inx
-        dey
+        iny
+        dex
         bne @loopLine
         lda tmp2
         cmp #4 ; requirement
@@ -51,18 +53,18 @@ findTopBulky:
         cmp #$b8
         bcc @loop
 @done:
-        txa
+        tya
         rts
 
 swapMino:
-        ldy #EMPTY_TILE
-        lda playfield, x
+        ldx #EMPTY_TILE
+        lda (playfieldAddr), y
         cmp #EMPTY_TILE
         bne @full
-        ldy #BLOCK_TILES+3
+        ldx #BLOCK_TILES+3
 @full:
-        tya
-        sta playfield, x
+        txa
+        sta (playfieldAddr), y
         rts
 
 garbageNormal:
@@ -73,16 +75,19 @@ garbageSmart:
         jsr smartHole
         jmp randomGarbage
 
+; -> x: index of the first block
 findTop:
-        ldx #$0
+        ldy #$0
 @loop:
-        lda playfield, x
+        lda (playfieldAddr), y
         cmp #EMPTY_TILE
         bne @done
-        inx
-        cpx #$b8
+        iny
+        cpy #$b8
         bcc @loop
 @done:
+        tya
+        tax
         rts
 
 randomGarbage:
@@ -120,16 +125,16 @@ garbageHard:
         rts
 
 smartHole:
-        ldx #199
+        ldy #199
 @loop:
-        lda playfield, x
+        lda (playfieldAddr), y
         cmp #EMPTY_TILE
         beq @done
-        dex
-        cpx #190
+        dey
+        cpy #190
         bcs @loop
 @done:
-        txa
+        tya
         sbc #190
         sta garbageHole
         rts
@@ -147,13 +152,13 @@ garbageAlwaysTetrisReady:
         lda #0
         sta tmp1 ; garbage to add
 
-        ldx #190
+        ldy #190
         jsr checkTetrisReady
-        ldx #180
+        ldy #180
         jsr checkTetrisReady
-        ldx #170
+        ldy #170
         jsr checkTetrisReady
-        ldx #160
+        ldy #160
         jsr checkTetrisReady
 
         lda tmp1
@@ -161,15 +166,15 @@ garbageAlwaysTetrisReady:
         rts
 
 checkTetrisReady:
-        ldy #9
+        ldx #9
 @loop:
-        lda playfield, x
+        lda (playfieldAddr), y
         cmp #EMPTY_TILE
         bne @filled
         inc tmp1 ; add garbage
-        ldy #1
+        ldx #1
 @filled:
-        inx
-        dey
+        iny
+        dex
         bne @loop
         rts

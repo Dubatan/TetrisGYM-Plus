@@ -14,11 +14,31 @@ ghostPiece:
         bpl @noGhost
         lda tetriminoY
         sta tmp3
+        ; duel: both players' ghosts each frame can lag, reuse the last result
+        ; while the piece only falls. invalidated on spawn. not used in single
+        ; player, the block tool edits the playfield under the piece
+        lda duelModifier
+        beq @search
+        lda tetriminoX
+        cmp ghostCacheX
+        bne @search
+        lda currentPiece
+        cmp ghostCachePiece
+        bne @search
+        lda hardDropGhostY
+        sta tetriminoY
+        jmp @found
+@search:
 @loop:
         inc tetriminoY
         jsr isPositionValid
         beq @loop
         dec tetriminoY
+        lda tetriminoX
+        sta ghostCacheX
+        lda currentPiece
+        sta ghostCachePiece
+@found:
         lda tetriminoY
         ; save value for use by hard/sonic drop in next frame
         sta hardDropGhostY

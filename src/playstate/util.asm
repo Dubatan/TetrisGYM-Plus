@@ -137,7 +137,7 @@ checkIfAboveLowStackLine:
         ldx #$0A
         sec
 @checkForBlockInRow:
-        lda playfield,y
+        lda (playfieldAddr),y
         bpl @foundBlockInRow
         iny
         dex

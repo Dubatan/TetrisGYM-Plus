@@ -53,15 +53,19 @@ pollController:
 
         lda goofyFlag
         beq @noGoofy
-        lda newlyPressedButtons_player1
+        ldx #$01 ; both controllers
+@goofy:
+        lda newlyPressedButtons_player1,x
         asl
         and #$AA
         sta tmp3
-        lda newlyPressedButtons_player1
+        lda newlyPressedButtons_player1,x
         and #$AA
         lsr
         ora tmp3
-        sta newlyPressedButtons_player1
+        sta newlyPressedButtons_player1,x
+        dex
+        bpl @goofy
 @noGoofy:
 
 diffOldAndNewButtons:

@@ -87,6 +87,8 @@ gameTypeLoopCheckStart:
         lda practiseType
         cmp #MODE_GAME_QUANTITY
         bpl gameTypeLoopNext
+        jsr duelModeAllowed
+        bcc gameTypeLoopNext
 
         lda #$02
         sta soundEffectSlot1Init
@@ -511,6 +513,11 @@ menuYTmp := tmp2
         cmp #MODE_DARK
         beq @renderDarkMode
 
+        cmp #MODE_DUEL
+        bne :+
+        jmp @renderDuelMode
+:
+
         jsr menuItemY16Offset
         bne @loopNext
         txa
@@ -588,6 +595,18 @@ menuYTmp := tmp2
         jsr stringSpriteAlignRight
         jmp @loopNext
 
+@renderDuelMode:
+        jsr menuItemY16Offset
+        bne @loopNext
+        ldx duelModifier
+        lda duelOptions, x
+        sta spriteIndexInOamContentLookup
+        lda #<((MODE_DUEL*8) + MENU_SPRITE_Y_BASE + 1)
+        jmp @renderOption
+
+duelOptions:
+        .byte $8, $1F, $20
+
 crashOptions:
         .byte $8, $16, $17, $18
 
@@ -631,6 +650,13 @@ menuItemY16Offset:
         tax
         lda tmpY
         sbc #0
+        bne @ret
+        ; below the visible screen. skipping these keeps the menu under 64 sprites
+        cpx #$EF
+        lda #0
+        bcc @ret
+        lda #1
+@ret:
         rts
 
 bufferScreen:

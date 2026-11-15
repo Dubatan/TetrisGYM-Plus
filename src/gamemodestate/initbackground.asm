@@ -7,9 +7,8 @@ gameModeState_initGameBackground:
 .endif
         jsr bulkCopyToPpu
         .addr   game_palette
-        lda practiseType
-        cmp #MODE_DUEL
-        bne @notDuel
+        lda duelModifier
+        beq @notDuel
         jsr copyRleNametableToPpu
         .addr   duel_nametable
         jsr duelDrawWins

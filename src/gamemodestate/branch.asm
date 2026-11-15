@@ -11,9 +11,8 @@ branchOnGameModeState:
             gameModeState_vblankThenRunState2
 
 gameModeState_next: ; used to be updatePlayer2
-        lda practiseType
-        cmp #MODE_DUEL
-        bne @singlePlayer
+        lda duelModifier
+        beq @singlePlayer
         ldx #DUEL_SIZE
         jsr duelUpdatePlayer
         jsr duelCheckEnd

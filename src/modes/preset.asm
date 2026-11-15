@@ -21,7 +21,7 @@ advanceGamePreset:
 
         ; draw from y
         lda #$7B
-        sta $0400, y
+        sta (playfieldAddr), y
 
         ; loop
         inc generalCounter

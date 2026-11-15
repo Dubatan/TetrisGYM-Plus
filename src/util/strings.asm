@@ -101,6 +101,8 @@ stringLookup:
         .byte stringLite-stringLookup
         .byte stringTeal-stringLookup
         .byte stringOG-stringLookup
+        .byte stringLead-stringLookup ; 1F
+        .byte stringBoth-stringLookup
 stringClassic:
         .byte $7,'C','L','A','S','S','I','C'
 stringLetters:
@@ -163,5 +165,9 @@ stringTeal:
         .byte $4,'T','E','A','L'
 stringLite:
         .byte $4,'L','I','T','E'
+stringLead:
+        .byte $4,'L','E','A','D'
+stringBoth:
+        .byte $4,'B','O','T','H'
 stringOG:
         .byte $2,'O','G'

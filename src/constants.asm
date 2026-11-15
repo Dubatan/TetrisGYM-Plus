@@ -86,8 +86,8 @@ MODE_LOWSTACK
 MODE_KILLX2
 MODE_INVISIBLE
 MODE_HARDDROP
-MODE_DUEL
 MODE_SPEED_TEST
+MODE_DUEL
 MODE_SCORE_DISPLAY
 MODE_CRASH
 MODE_STRICT
@@ -114,7 +114,11 @@ MODE_QUANTITY = MODE_KEYBOARD + 1
 MODE_QUANTITY = MODE_PATCHED + 1
 .endif
 
-MODE_GAME_QUANTITY = MODE_DUEL + 1
+MODE_GAME_QUANTITY = MODE_HARDDROP + 1
+
+DUEL_OFF := 0 ; for duelModifier
+DUEL_LEAD := 1 ; ends as soon as the remaining player leads
+DUEL_BOTH := 2 ; ends when both players are out
 
 SCORING_CLASSIC := 0 ; for scoringModifier
 SCORING_LETTERS := 1
@@ -164,8 +168,8 @@ MENU_TOP_MARGIN_SCROLL := 7 ; in blocks
     .byte $0    ; MODE_KILLX2
     .byte $0    ; MODE_INVISIBLE
     .byte $0    ; MODE_HARDDROP
-    .byte $1    ; MODE_DUEL
     .byte $0    ; MODE_SPEED_TEST
+    .byte $2    ; MODE_DUEL
     .byte $5    ; MODE_SCORE_DISPLAY
     .byte $3	; MODE_CRASH
     .byte $1	; MODE_STRICT
@@ -208,5 +212,4 @@ MENU_TOP_MARGIN_SCROLL := 7 ; in blocks
     .byte   "KILLX2"
     .byte   "INVZBL"
     .byte   "HRDDRP"
-    .byte   " DUEL "
 .endmacro

@@ -1,4 +1,10 @@
 gameModeState_initGameState:
+        ; trainers set up the playfield through playfieldAddr, after a duel it
+        ; can still point to player 2
+        lda #$00
+        sta playfieldAddr
+        lda #>playfield
+        sta playfieldAddr+1
         lda #$EF
         ldx #$04
         ldy #$04
@@ -10,6 +16,8 @@ gameModeState_initGameState:
         sta $03EF,x
         dex
         bne @initStatsByType
+        lda #$FF
+        sta ghostCacheX
         lda #$05
         sta tetriminoX
 
@@ -27,9 +35,11 @@ gameModeState_initGameState:
         sta set_seed+2
 
         ; both duel players draw from their own copy of a random seed
+        lda duelModifier
+        beq @notDuelSeed
         lda practiseType
-        cmp #MODE_DUEL
-        bne @notDuelSeed
+        cmp #MODE_SEED ; the chosen seed is used as is
+        beq @notDuelSeed
         lda rng_seed
         sta set_seed
         lda rng_seed+1
@@ -147,9 +157,8 @@ gameModeState_initGameState:
         lda #RENDER_STATS|RENDER_HZ|RENDER_SCORE|RENDER_LEVEL|RENDER_LINES
         sta renderFlags
 
-        lda practiseType
-        cmp #MODE_DUEL
-        bne @notDuel
+        lda duelModifier
+        beq @notDuel
         jsr duelInit
 @notDuel:
         jsr updateAudioWaitForNmiAndResetOamStaging
@@ -164,6 +173,10 @@ gameModeState_initGameState:
         lda #0
         sta hzSpawnDelay
         jsr practiseInitGameState
+        lda duelModifier
+        beq @notDuelFinish
+        jsr duelInitFinish
+@notDuelFinish:
         jsr resetScroll
 
         ldx musicType

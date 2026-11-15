@@ -1,7 +1,6 @@
 gameModeState_updatePlayer1:
-        lda practiseType
-        cmp #MODE_DUEL
-        bne @singlePlayer
+        lda duelModifier
+        beq @singlePlayer
         ldx #$00
         jsr duelUpdatePlayer
         inc gameModeState ; 5

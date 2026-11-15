@@ -2,7 +2,7 @@
 
 ## [unreleased]
 
-* Duel: two player score race with per player score, lines, level and next piece
+* Duel: two players on one screen with per player score, lines, level and next piece; a switch that works with most trainers, B-Type and Checkerboard are races to the goal
 * Patched: optional fixes for bugs of the original game
 * Fixed a glitch when using Crash Mode + Crunch Mode
 * Fixed some accuracy bugs in Crash Mode

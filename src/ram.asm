@@ -24,7 +24,9 @@ allegroIndex: .res 1 ; $001F for crash
 wasAllegro: .res 1 ; $0020 for crash
 startParity: .res 1 ; $0021 for crash
 lagState: .res 1 ; $0022 for lagged lines & score
-    .res $10
+ghostCacheX: .res 1 ; $0023 duel hard drop: tetriminoX of hardDropGhostY, $FF if invalid
+ghostCachePiece: .res 1 ; $0024 currentPiece of hardDropGhostY
+    .res $E
 
 verticalBlankingInterval: .res 1 ; $0033
 set_seed: .res 3 ; $0034 ; rng_seed, rng_seed+1, spawnCount
@@ -171,7 +173,10 @@ D_PHASE = lineClearPhase - tetriminoX
 D_SCORE = 32
 D_BINSCORE = 36
 D_FLAGS = 45
-D_STATUS = 46 ; 0 - playing, 1 - topped out. not part of the swapped state
+D_CRASH = 48
+D_INVISIBLE = 59
+D_STATUS = 64 ; 0 - playing, 1 - out. not part of the swapped state
+D_GOAL = 65 ; 1 - reached the b-type / checkerboard goal. not swapped
 
 .bss
 stack: .res $FF ; $0100
@@ -179,7 +184,7 @@ stack: .res $FF ; $0100
 oamStaging: .res $100 ; $0200                        ; format: https://wiki.nesdev.com/w/index.php/PPU_programmer_reference#OAM
 
 ; duel mode ($0300). tspins mode uses $03B2+ as scratch, keep below that
-DUEL_SIZE = 48
+DUEL_SIZE = 66
 duelState: .res DUEL_SIZE*2 ; saved state per player, layout in modes/duel.asm
 duelNextBuf: .res 16 ; 4x2 next piece tiles per player
 duelNextShown: .res 2 ; next piece currently in duelNextBuf
@@ -188,8 +193,10 @@ duelDirty: .res 1 ; bit 0/1 - next piece p1/p2, bit 7 - wins
 duelBase: .res 1 ; offset into duelState of player being updated
 duelPlayer: .res 1 ; 0/1
 duelTmp: .res 3
-duelNmi: .res 5 ; temporaries only used inside nmi
-    .res $F0-(DUEL_SIZE*2)-16-2-2-1-1-1-3-5
+duelNmi: .res 6 ; temporaries only used inside nmi
+duelLowStackRow: .res 1 ; playfield row drawn as low stack line, $FF if none
+    .res $B2-(DUEL_SIZE*2)-16-2-2-1-1-1-3-6-1
+    .res $F0-$B2 ; tspins scratch
 statsByType: .res $E ; $03F0
     .res 2
 playfield: .res $c8 ; $0400

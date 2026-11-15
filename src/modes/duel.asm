@@ -1,50 +1,110 @@
-; duel - two player score race
+; duel - two player mode, switched on with duelModifier
 ;
 ; The game logic only knows one player. Each frame both players' state is
 ; swapped into the regular variables in turn (duelLoadState / duelSaveState),
 ; player 2 uses the playfield at $0500. The nmi renders from the saved copies,
 ; see nmi/render_mode_duel.asm.
 ;
-; Both players get the same piece sequence (per player copy of set_seed).
-; The game ends when both players topped out, or as soon as the remaining
-; player has more points than the one that topped out.
+; Both players start from the same state (playfield, trainer setup, random
+; seeds) and get the same piece sequence (per player copy of set_seed).
+; Score race: the game ends when both players are out (DUEL_BOTH), or as soon
+; as the remaining player has more points (DUEL_LEAD).
+; B-Type / Checkerboard: the first player to reach the goal wins, a player
+; that tops out before loses.
 
-; zeropage address of each state byte, 0 terminated, once per player so it can
-; be indexed with the same offset as duelState
+; zeropage address of each swapped state byte, 0 terminated, once per player
+; so it can be indexed with the same offset as duelState
 duelZpTable:
 .repeat 2
     .repeat 32, i
-        .byte tetriminoX+i
+        .byte tetriminoX+i ; $40-$5F
     .endrepeat
-        .byte score, score+1, score+2, score+3
-        .byte binScore, binScore+1, binScore+2, binScore+3
-        .byte spawnID, set_seed, set_seed+1, set_seed+2, nextPiece
-        .byte renderFlags
-        .byte 0, 0
+        .byte score, score+1, score+2, score+3 ; 32
+        .byte binScore, binScore+1, binScore+2, binScore+3 ; 36
+        .byte spawnID, set_seed, set_seed+1, set_seed+2, nextPiece ; 40
+        .byte renderFlags ; 45
+        .byte allegro, pendingGarbage, crashState, allegroIndex, wasAllegro ; 46
+        .byte rng_seed, rng_seed+1, spawnCount, lagState ; 51
+        .byte ghostCacheX, ghostCachePiece ; 55
+        .byte 0 ; 57
+        .res DUEL_SIZE-58 ; non zeropage state, see duelLoadState
 .endrepeat
+
+.assert D_CRASH = 48, error, "D_CRASH does not match duelZpTable"
+D_ABSOLUTE = 58 ; linecapState, invisibleFlag, currentFloor, hardDropGhostY, presetIndex, spawnDelay
+.assert D_INVISIBLE = D_ABSOLUTE+1, error, "D_INVISIBLE does not match"
+.assert D_STATUS >= D_ABSOLUTE+6, error, "D_STATUS overlaps swapped state"
+
+; shortcut: these modes are not available in a duel (single player HUD or
+; state that is not swapped), the menu does not start them
+; -> carry set if the current mode can be started
+duelModeAllowed:
+        sec
+        lda duelModifier
+        beq @ret
+        lda practiseType
+        cmp #MODE_TSPINS
+        beq @no
+        cmp #MODE_PARITY
+        beq @no
+        cmp #MODE_PACE
+        beq @no
+        cmp #MODE_TAPQTY
+        beq @no
+        sec
+        rts
+@no:    clc
+@ret:   rts
 
 duelLoadState:
         ldx duelBase
 @loop:  ldy duelZpTable,x
-        beq @ret
+        beq @absolute
         lda duelState,x
         sta a:$00,y
         inx
         bne @loop
-@ret:   rts
+@absolute:
+        ldx duelBase
+        lda duelState+D_ABSOLUTE,x
+        sta linecapState
+        lda duelState+D_ABSOLUTE+1,x
+        sta invisibleFlag
+        lda duelState+D_ABSOLUTE+2,x
+        sta currentFloor
+        lda duelState+D_ABSOLUTE+3,x
+        sta hardDropGhostY
+        lda duelState+D_ABSOLUTE+4,x
+        sta presetIndex
+        lda duelState+D_ABSOLUTE+5,x
+        sta spawnDelay
+        rts
 
 duelSaveState:
         ldx duelBase
 @loop:  ldy duelZpTable,x
-        beq @ret
+        beq @absolute
         lda a:$00,y
         sta duelState,x
         inx
         bne @loop
-@ret:   rts
+@absolute:
+        ldx duelBase
+        lda linecapState
+        sta duelState+D_ABSOLUTE,x
+        lda invisibleFlag
+        sta duelState+D_ABSOLUTE+1,x
+        lda currentFloor
+        sta duelState+D_ABSOLUTE+2,x
+        lda hardDropGhostY
+        sta duelState+D_ABSOLUTE+3,x
+        lda presetIndex
+        sta duelState+D_ABSOLUTE+4,x
+        lda spawnDelay
+        sta duelState+D_ABSOLUTE+5,x
+        rts
 
-; called at the end of gameModeState_initGameState, both players start from
-; the freshly initialised single player state
+; called in gameModeState_initGameState before the first frame is rendered
 duelInit:
         lda #EMPTY_TILE
         ldx #$00
@@ -55,18 +115,43 @@ duelInit:
         ; x is 0
         stx duelState+D_STATUS
         stx duelState+DUEL_SIZE+D_STATUS
+        stx duelState+D_GOAL
+        stx duelState+DUEL_SIZE+D_GOAL
         stx duelDirty
-        stx duelBase
         lda #$FE ; force next piece draw
         sta duelNextShown
         sta duelNextShown+1
-        jsr duelSaveState
-        lda #DUEL_SIZE
-        sta duelBase
-        jsr duelSaveState
+        ldx #$FF
+        lda practiseType
+        cmp #MODE_LOWSTACK
+        bne @noLowStack
+        lda #19
+        sec
+        sbc lowStackRowModifier
+        tax
+@noLowStack:
+        stx duelLowStackRow
+        jsr duelSaveBoth
         lda #$09
         sta renderMode
         rts
+
+; called at the end of gameModeState_initGameState, after the trainers set up
+; player 1's playfield. player 2 starts with an identical copy
+duelInitFinish:
+        ldx #$00
+@copyPlayfield:
+        lda playfield,x
+        sta playfield+$100,x
+        inx
+        bne @copyPlayfield
+duelSaveBoth:
+        lda #$00
+        sta duelBase
+        jsr duelSaveState
+        lda #DUEL_SIZE
+        sta duelBase
+        jmp duelSaveState
 
 ; x - offset into duelState
 duelUpdatePlayer:
@@ -139,6 +224,9 @@ duelUpdateNextPiece:
         lda nextPiece
         ldy hideNextPiece
         beq @visible
+        ldy practiseType
+        cpy #MODE_HARDDROP ; select is sonic drop, next piece always shown
+        beq @visible
         lda #$FF
 @visible:
         cmp duelNextShown,x
@@ -206,23 +294,52 @@ duelCompareScores:
 @ret:   rts
 
 duelCheckEnd:
+        ; b-type / checkerboard goal, both on the same frame is a draw
+        lda duelState+DUEL_SIZE+D_GOAL
+        asl
+        ora duelState+D_GOAL
+        beq @noGoal
+        cmp #$03
+        bne duelEnd
+        lda #$00
+        beq duelEnd
+@noGoal:
         lda duelState+D_STATUS
         ora duelState+DUEL_SIZE+D_STATUS
         beq @ret
+        lda practiseType
+        cmp #MODE_TYPEB
+        beq @race
+        cmp #MODE_CHECKERBOARD
+        bne @score
+@race:  ; whoever is out first loses
+        lda #$00 ; both out
+        ldx duelState+D_STATUS
+        beq @player1Wins
+        ldx duelState+DUEL_SIZE+D_STATUS
+        bne duelEnd
+        lda #$02
+        bne duelEnd
+@player1Wins:
+        lda #$01
+        bne duelEnd
+@score:
         jsr duelCompareScores
         ldx duelState+D_STATUS
         beq @player2Out
         ldx duelState+DUEL_SIZE+D_STATUS
         bne duelEnd ; both out
         ldx duelModifier
-        bne @ret
+        cpx #DUEL_BOTH
+        beq @ret
         ; only player 1 out, player 2 has to pass
         cmp #$02
         beq duelEnd
 @ret:   rts
 @player2Out:
         ldx duelModifier
-        bne @ret
+        cpx #DUEL_BOTH
+        beq @ret
         cmp #$01
         beq duelEnd
         rts
@@ -282,7 +399,7 @@ duelEnd:
         ; back to level menu, see gameModeState_handleGameOver
         lda #EMPTY_TILE
         ldx #>playfield
-        ldy #>playfield+1
+        ldy #>(playfield+$100)
         jsr memset_page
         lda #$00
         sta vramRow
@@ -291,6 +408,16 @@ duelEnd:
         lda #$01
         sta playState
         jsr updateAudioWaitForNmiAndResetOamStaging
+        lda practiseType
+        cmp #MODE_KILLX2
+        bne @levelMenu
+        ; double killscreen has no level menu, start the next game directly
+        lda #29
+        sta levelNumber
+        lda #$00
+        sta gameModeState
+        rts
+@levelMenu:
         lda #$03
         sta gameMode
         rts

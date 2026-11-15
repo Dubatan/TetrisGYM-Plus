@@ -140,9 +140,6 @@ checkLinecap: ; set linecapState
         ; check if enabled
         lda linecapFlag
         beq @linecapEnd
-        lda practiseType
-        cmp #MODE_DUEL ; linecap state is not tracked per player
-        beq @linecapEnd
         ; skip check if already set
         lda linecapState
         bne @linecapEnd
@@ -216,9 +213,6 @@ addPoints:
         beq @crashDisabled
         lda patchedFlag
         bne @crashDisabled
-        lda practiseType
-        cmp #MODE_DUEL
-        beq @crashDisabled
         jsr testCrash
 @crashDisabled:
 

@@ -96,7 +96,7 @@ harddrop_tetrimino:
 
 harddropAddr = pointerAddr
 
-        lda #$04
+        lda playfieldAddr+1 ; player 2 playfield in duel mode
         sta harddropAddr+1
         sta harddropAddr+3
 
@@ -215,10 +215,10 @@ harddropShift:
         sta completedLines
         ; emty top row
         lda #EMPTY_TILE
-        ldx #9
+        ldy #9
 @topRowLoop:
-        sta playfield, x
-        dex
+        sta (playfieldAddr), y
+        dey
         bpl @topRowLoop
         ; lda #TETRIMINO_X_HIDE
         ; sta tetriminoX

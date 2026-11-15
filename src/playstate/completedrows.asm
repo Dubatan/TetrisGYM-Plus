@@ -104,7 +104,7 @@ playState_checkForCompletedRows:
         ldx #$0A
         lda #BLOCK_TILES+3
 @drawFloorSurface:
-        sta playfield,y
+        sta (playfieldAddr),y
         iny
         dex
         bne @drawFloorSurface

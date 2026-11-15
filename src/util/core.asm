@@ -1,9 +1,9 @@
 clearPlayfield:
         lda #EMPTY_TILE
-        ldx #$C8
+        ldy #$C8
 @loop:
-        sta $0400, x
-        dex
+        sta (playfieldAddr), y ; player 2 playfield in duel mode
+        dey
         bne @loop
         rts
 

@@ -61,6 +61,13 @@ endOfEndingCode:
         rts
 
 typeBEndingStuff:
+        lda duelModifier
+        beq @noDuel
+        ; duel: this player reached the goal, see duelCheckEnd
+        ldx duelBase
+        lda #$01
+        sta duelState+D_GOAL,x
+@noDuel:
         ldx #<typebSuccessGraphic
         ldy #>typebSuccessGraphic
 copyGraphic:
@@ -70,6 +77,14 @@ typeBEndingStuffEnd:
         ; play sfx
         lda #$4
         sta soundEffectSlot1Init
+
+        lda duelModifier
+        beq @single
+        ; duel: no sleep, the other player keeps playing
+        lda #$0A ; playState_checkStartGameOver
+        sta playState
+        rts
+@single:
 
         lda renderFlags ; Flag needed to reveal hidden score
         ora #$4
@@ -102,7 +117,16 @@ copyGraphicToPlayfieldAtCustomRow:
 @copySuccessGraphic:
         lda (generalCounter),y
         beq @graphicCopied
+        pha
+        lda playfieldAddr+1
+        cmp #>(playfield+$100) ; duel player 2
+        pla
+        bcs @player2
         sta playfield,x
+        bcc @next
+@player2:
+        sta playfield+$100,x
+@next:
         inx
         iny
         bne @copySuccessGraphic

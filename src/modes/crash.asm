@@ -80,7 +80,7 @@ testCrash:
         lda #$00
         sta allegroIndex ;will be reusing to store small amounts of cycles and add at the end.
 
-        lda newlyPressedButtons_player1
+        lda newlyPressedButtons ; active player in duel mode
         and #BUTTON_SELECT
         beq @digit1
         lda #$07 ; add 7 cycles for select
@@ -408,6 +408,8 @@ testCrash:
 @allegroClear:
         lda #$00 ;reset allegro flag and return to program execution, no crash
         sta allegroIndex
+        lda duelModifier
+        bne @noLag
         lda lagState
         beq @noLag ;if lag should happen, wait a frame here so that sprite staging doesn't happen.
         lda #$00
@@ -432,6 +434,8 @@ testCrash:
         cmp #CRASH_CRASH ;if crash mode, crash
         bcc @topout
         bne @allegroClear
+        ldx duelModifier ; a real crash would stop both players, top out instead
+        bne @topout
         .byte 02 ; stp
 @topout:
         lda #LINECAP_HALT ;if topout, activate linecap
@@ -444,6 +448,8 @@ sumTable:
 switchTable:
     .byte $3C, $77, $3C, $65, $3C, $66, $3C;60 119 60 101 60 102 60 gets read in reverse
 confettiHandler:
+        lda duelModifier ; confetti would pause both players in a duel
+        bne @endConfetti
         lda crashState ;E0 = confetti exits if [framecounter = 255 && controller != BDLR] or controller = AS
         cmp #$E0
         bne @infiniteConfetti
@@ -480,7 +486,12 @@ confettiHandler:
         lda #$00
         sta allegroIndex
         rts
-satanSpawn: ; copied from routine vanilla game's memset_ppu_page_and_more which is no longer present in gym
+satanSpawn:
+        lda duelModifier ; graphics corruption would hit both players in a duel
+        beq :+
+        rts
+:
+        ; ; copied from routine vanilla game's memset_ppu_page_and_more which is no longer present in gym
         lda palFlag
         beq @ntsc
         lda #$00
@@ -530,7 +541,12 @@ LAC61:  sty     PPUDATA
         bne LAC61
 LAC67:  ldx     tmp2
         rts
-blackBox: ;copied from patchToPpu from original game as it's no longer present in gym
+blackBox:
+        lda duelModifier
+        beq :+
+        rts
+:
+        ; ;copied from patchToPpu from original game as it's no longer present in gym
         lda #$00
         sta verticalBlankingInterval
 @checkForNmi:

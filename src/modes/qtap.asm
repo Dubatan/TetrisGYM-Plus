@@ -13,7 +13,7 @@ advanceGameTap:
 
 @loop:
         lda #$7B
-        sta $400, y
+        sta (playfieldAddr), y
         ; add 10 to y
         tya
         sec ;important

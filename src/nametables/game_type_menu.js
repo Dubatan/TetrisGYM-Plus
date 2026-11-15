@@ -61,8 +61,8 @@ drawTiles(buffer, lookup, `
 #a    INVISIBLE               d#
 #a    HARD DROP               d#
 `);drawTiles(extra, lookup, `
-#a    DUEL                    d#
 #a    TAP/ROLL SPEED          d#
+#a    DUEL                    d#
 #a    SCORING                 d#
 #a    CRASH                   d#
 #a    STRICT CRASH            d#

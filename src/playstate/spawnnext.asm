@@ -44,6 +44,8 @@ playState_spawnNextTetrimino:
         lda #$00
         sta fallTimer
         sta tetriminoY
+        lda #$FF
+        sta ghostCacheX
         lda #$05
         sta tetriminoX
         lda nextPiece
@@ -102,8 +104,6 @@ pickTetriminoPre:
         ; lda practiseType ; accumulator is still practiseType
         cmp #MODE_SEED
         beq pickTetriminoSeed
-        cmp #MODE_DUEL
-        beq pickTetriminoSeed
         ; lda practiseType
         cmp #MODE_TAPQTY
         beq pickTetriminoLongbar
@@ -112,7 +112,15 @@ pickTetriminoPre:
         beq pickTetriminoLongbar
         ; lda practiseType
         cmp #MODE_PRESETS
-        beq pickTetriminoPreset
+        bne :+
+        jmp pickTetriminoPreset
+:
+        lda duelModifier
+        beq @single
+        ; duel: same pieces for both players from their copy of set_seed
+        jsr pickTetriminoSeed
+        jmp pickTetriminoPost
+@single:
         jmp pickRandomTetrimino
 
 pickTetriminoT:

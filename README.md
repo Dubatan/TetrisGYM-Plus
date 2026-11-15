@@ -2,7 +2,7 @@
 
 TetrisGYM Plus is a fork of [TetrisGYM](https://github.com/kirjavascript/TetrisGYM) by kirjavascript, based on TetrisGYM v6. It keeps every TetrisGYM feature and adds:
 
-* [Duel](#duel) - two player score race on one screen
+* [Duel](#duel) - two players on one screen, combinable with most trainers
 * [Patched](#patched) - optional fixes for bugs of the original game
 
 The title menu shows the TetrisGYM version this fork is based on and the Plus version (currently `PLUS V1.0`, based on `V6`).
@@ -38,10 +38,10 @@ Everything below is the TetrisGYM documentation, extended by the Plus features.
     * [Double Killscreen](#double-killscreen)
     * [Invisible](#invisible)
     * [Hard Drop](#hard-drop)
-    * [Duel](#duel) (Plus)
 * [Level Menu](#level-menu)
 * [Highscores](#highscores)
 * [Tap/Roll Speed Tester](#taproll-speed-tester)
+* [Duel](#duel) (Plus)
 * [Scoring](#scoring)
 * [Crash](#crash)
 * [Hz Display](#hz-display)
@@ -263,23 +263,6 @@ Blocks are invisible until the end of the game.
 
 Press `up` to hard drop and `select` to sonic drop.
 
-### Duel
-
-![Duel](./assets/screens/duel.png)
-
-Two player score race on one screen, player 2 uses the second controller.
-
-Both players get the same piece sequence and the same start level. Score (8 digits), lines (4 digits), level (3 digits) and the next piece are shown per player, each playfield has its own level colours.
-
-* OFF  
-        The game ends when both players topped out, or as soon as the remaining player has more points than the one who topped out.
-* ON  
-        The game always continues until both players topped out.
-
-Either player can pause. After the result press `start` to return to the level menu. Wins are counted until you return to the main menu.
-
-Trainers, Hz display, block tool, linecap, crash modes and highscores are not available in a duel. PAL Mode and Patched apply.
-
 ## Level Menu
 
 Retains the functionality of the original level menu, except;
@@ -314,6 +297,33 @@ To clear the highscores, select hearts and press `down`. Then confirm the prompt
 ![Speed Test](./assets/screens/speedtest.png)
 
 Practise tapping rate outside of gameplay.
+
+## Duel
+
+![Duel](./assets/screens/duel.png)
+
+Two players on one screen, player 2 uses the second controller. Duel is a switch: choose `LEAD` or `BOTH`, then start any mode from the list above. `OFF` is normal single player.
+
+Both players start with the same playfield and settings and get the same piece sequence, garbage and start level. Score (8 digits), lines (4 digits), level (3 digits) and the next piece are shown per player, each playfield has its own level colours.
+
+Who wins:
+
+* `LEAD`  
+        Score race. The game ends when both players topped out, or as soon as the remaining player has more points than the one who topped out.
+* `BOTH`  
+        Score race. The game always continues until both players topped out.
+* B-Type and Checkerboard  
+        The first player to reach the goal wins, a player who tops out before loses. Same for `LEAD` and `BOTH`.
+
+Available in a duel: Tetris, Seed, Setups, B-Type, Floor, Crunch, (Quick)Tap, Transition, Marathon, Checkerboard, Garbage, Drought, DAS Delay, Low Stack, Killscreen ×2, Invisible, Hard Drop, as well as Scoring, Crash, Strict Crash, Disable Flash, Disable Pause, Goofy Foot (both controllers), Linecap, PAL Mode and Patched.
+
+* T-Spins, Stacking, Pace and Tap Quantity cannot be started with Duel on.
+* Hz Display, Input Display, Dark Mode, Block Tool, DAS Only and Qual Mode are ignored in a duel.
+* Crash: each player is checked separately. `CRASH` tops the player out instead of stopping the game; confetti, lag and graphics glitches are left out because they would affect both players.
+* Hard Drop: two pieces and two ghosts can exceed 8 sprites per scanline and flicker; very busy frames can lag.
+* The score is always shown with 8 digits.
+
+Either player can pause. After the result press `start` to play again (level menu, or directly for Killscreen ×2). Wins are counted until you return to the main menu. Highscores are not saved in a duel.
 
 ## Scoring
 
