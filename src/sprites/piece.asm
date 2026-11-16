@@ -14,32 +14,59 @@ ghostPiece:
         bpl @noGhost
         lda tetriminoY
         sta tmp3
-        ; duel: both players' ghosts each frame can lag, reuse the last result
-        ; while the piece only falls. invalidated on spawn. not used in single
-        ; player, the block tool edits the playfield under the piece
-        lda duelModifier
-        beq @search
-        lda tetriminoX
-        cmp ghostCacheX
-        bne @search
+        ; drop distance is the fewest free cells below any of the four minos.
+        ; same result as moving down until isPositionValid fails, but several
+        ; times faster (two players' ghosts per frame lagged in duel mode)
+        ldy tetriminoY
+        lda multBy10Table,y
+        clc
+        adc tetriminoX
+        sta generalCounter ; playfield index of the piece
         lda currentPiece
-        cmp ghostCachePiece
-        bne @search
-        lda hardDropGhostY
-        sta tetriminoY
-        jmp @found
-@search:
-@loop:
-        inc tetriminoY
-        jsr isPositionValid
-        beq @loop
-        dec tetriminoY
-        lda tetriminoX
-        sta ghostCacheX
-        lda currentPiece
-        sta ghostCachePiece
-@found:
+        asl a
+        asl a
+        tax
+        lda #$04
+        sta generalCounter3
+        lda #$FF
+        sta generalCounter2 ; drop distance
+@mino:
+        ldy orientationTableY,x
+        lda multBy10Table,y
+        clc
+        adc generalCounter
+        clc
+        adc orientationTableX,x
+        tay ; rows above the playfield wrap to 236-255, like in isPositionValid
+        lda #$00
+        sta generalCounter4 ; free cells below this mino
+@cell:
+        tya
+        clc
+        adc #$0A
+        tay
+        cmp #200
+        bcc @read
+        cmp #236
+        bcc @minoDone ; below the bottom row
+@read:
+        lda (playfieldAddr),y
+        bpl @minoDone ; tiles do not set negative flag
+        inc generalCounter4
+        bne @cell
+@minoDone:
+        lda generalCounter4
+        cmp generalCounter2
+        bcs @notLess
+        sta generalCounter2
+@notLess:
+        inx
+        dec generalCounter3
+        bne @mino
         lda tetriminoY
+        clc
+        adc generalCounter2
+        sta tetriminoY
         ; save value for use by hard/sonic drop in next frame
         sta hardDropGhostY
         ; check if equal to current position

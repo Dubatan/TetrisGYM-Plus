@@ -82,8 +82,6 @@ hzTap:
 
         lda dasOnlyFlag
         beq :+
-        lda duelModifier ; hz is only tracked for player 1
-        bne :+
         lda #0
         sta dasOnlyShiftDisabled
 

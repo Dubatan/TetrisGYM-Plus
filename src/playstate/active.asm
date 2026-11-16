@@ -7,7 +7,12 @@ playState_playerControlsActiveTetrimino:
         cmp #8
         beq playState_playerControlsActiveTetrimino_return
 @notHard:
+        ; hz is only tracked for single player, its maths is too slow to run
+        ; for two players every frame
+        lda duelModifier
+        bne @noHz
         jsr hzControl ; and dasOnly control
+@noHz:
 
         jsr shift_tetrimino
         jsr rotate_tetrimino

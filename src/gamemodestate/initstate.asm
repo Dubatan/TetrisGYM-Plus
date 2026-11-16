@@ -16,8 +16,6 @@ gameModeState_initGameState:
         sta $03EF,x
         dex
         bne @initStatsByType
-        lda #$FF
-        sta ghostCacheX
         lda #$05
         sta tetriminoX
 

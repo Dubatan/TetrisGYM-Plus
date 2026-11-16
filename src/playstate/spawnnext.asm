@@ -44,8 +44,6 @@ playState_spawnNextTetrimino:
         lda #$00
         sta fallTimer
         sta tetriminoY
-        lda #$FF
-        sta ghostCacheX
         lda #$05
         sta tetriminoX
         lda nextPiece

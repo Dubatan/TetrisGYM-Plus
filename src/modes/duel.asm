@@ -12,26 +12,45 @@
 ; B-Type / Checkerboard: the first player to reach the goal wins, a player
 ; that tops out before loses.
 
-; zeropage address of each swapped state byte, 0 terminated, once per player
-; so it can be indexed with the same offset as duelState
-duelZpTable:
-.repeat 2
+; swapped zeropage state. op is called with the zeropage address and the
+; offset into duelState
+.macro duelZpState op
     .repeat 32, i
-        .byte tetriminoX+i ; $40-$5F
+        op tetriminoX+i, i ; $40-$5F
     .endrepeat
-        .byte score, score+1, score+2, score+3 ; 32
-        .byte binScore, binScore+1, binScore+2, binScore+3 ; 36
-        .byte spawnID, set_seed, set_seed+1, set_seed+2, nextPiece ; 40
-        .byte renderFlags ; 45
-        .byte allegro, pendingGarbage, crashState, allegroIndex, wasAllegro ; 46
-        .byte rng_seed, rng_seed+1, spawnCount, lagState ; 51
-        .byte ghostCacheX, ghostCachePiece ; 55
-        .byte 0 ; 57
-        .res DUEL_SIZE-58 ; non zeropage state, see duelLoadState
-.endrepeat
+    .repeat 4, i
+        op score+i, 32+i
+        op binScore+i, 36+i
+    .endrepeat
+        op spawnID, 40
+        op set_seed, 41
+        op set_seed+1, 42
+        op set_seed+2, 43
+        op nextPiece, 44
+        op renderFlags, 45
+        op allegro, 46
+        op pendingGarbage, 47
+        op crashState, 48
+        op allegroIndex, 49
+        op wasAllegro, 50
+        op rng_seed, 51
+        op rng_seed+1, 52
+        op spawnCount, 53
+        op lagState, 54
+.endmacro
 
-.assert D_CRASH = 48, error, "D_CRASH does not match duelZpTable"
-D_ABSOLUTE = 58 ; linecapState, invisibleFlag, currentFloor, hardDropGhostY, presetIndex, spawnDelay
+.macro duelLoadByte addr, offset
+        lda duelState+offset,x
+        sta addr
+.endmacro
+
+.macro duelSaveByte addr, offset
+        lda addr
+        sta duelState+offset,x
+.endmacro
+
+.assert D_CRASH = 48, error, "D_CRASH does not match duelZpState"
+D_ABSOLUTE = 56 ; linecapState, invisibleFlag, currentFloor, hardDropGhostY, presetIndex, spawnDelay
 .assert D_INVISIBLE = D_ABSOLUTE+1, error, "D_INVISIBLE does not match"
 .assert D_STATUS >= D_ABSOLUTE+6, error, "D_STATUS overlaps swapped state"
 
@@ -56,16 +75,10 @@ duelModeAllowed:
 @no:    clc
 @ret:   rts
 
+; unrolled, a table driven loop took 5000 cycles per frame for both players
 duelLoadState:
         ldx duelBase
-@loop:  ldy duelZpTable,x
-        beq @absolute
-        lda duelState,x
-        sta a:$00,y
-        inx
-        bne @loop
-@absolute:
-        ldx duelBase
+        duelZpState duelLoadByte
         lda duelState+D_ABSOLUTE,x
         sta linecapState
         lda duelState+D_ABSOLUTE+1,x
@@ -82,14 +95,7 @@ duelLoadState:
 
 duelSaveState:
         ldx duelBase
-@loop:  ldy duelZpTable,x
-        beq @absolute
-        lda a:$00,y
-        sta duelState,x
-        inx
-        bne @loop
-@absolute:
-        ldx duelBase
+        duelZpState duelSaveByte
         lda linecapState
         sta duelState+D_ABSOLUTE,x
         lda invisibleFlag
@@ -205,6 +211,37 @@ duelUpdatePlayer:
         inx
         bne @moveSprite
 @spritesMoved:
+        ; hard drop ghost: with both pieces and both ghosts more than 8 sprites
+        ; can share a scanline. the ghosts go to the end of oam so only they
+        ; drop out, and swap priority every frame so neither is gone for good
+        lda oamStagingLength
+        sec
+        sbc duelTmp
+        cmp #$20
+        bne @noGhost
+        lda frameCounter
+        eor duelPlayer
+        lsr
+        ldy #$E0
+        bcc @ghostSlot
+        ldy #$F0
+@ghostSlot:
+        ldx duelTmp
+@moveGhost:
+        lda oamStaging+$10,x
+        sta oamStaging,y
+        lda #$FF
+        sta oamStaging+$10,x
+        inx
+        iny
+        tya
+        and #$0F
+        bne @moveGhost
+        lda duelTmp
+        clc
+        adc #$10
+        sta oamStagingLength
+@noGhost:
         jsr duelUpdateNextPiece
         jmp duelSaveState
 
