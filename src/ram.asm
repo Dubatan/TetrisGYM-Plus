@@ -172,9 +172,9 @@ D_SCORE = 32
 D_BINSCORE = 36
 D_FLAGS = 45
 D_CRASH = 48
-D_INVISIBLE = 57
-D_STATUS = 62 ; 0 - playing, 1 - out. not part of the swapped state
-D_GOAL = 63 ; 1 - reached the b-type / checkerboard goal. not swapped
+D_INVISIBLE = 60
+D_STATUS = 66 ; 0 - playing, 1 - out. not part of the swapped state
+D_GOAL = 67 ; 1 - reached the b-type / checkerboard goal. not swapped
 
 .bss
 stack: .res $FF ; $0100
@@ -182,7 +182,7 @@ stack: .res $FF ; $0100
 oamStaging: .res $100 ; $0200                        ; format: https://wiki.nesdev.com/w/index.php/PPU_programmer_reference#OAM
 
 ; duel mode ($0300). tspins mode uses $03B2+ as scratch, keep below that
-DUEL_SIZE = 64
+DUEL_SIZE = 68
 duelState: .res DUEL_SIZE*2 ; saved state per player, layout in modes/duel.asm
 duelNextBuf: .res 16 ; 4x2 next piece tiles per player
 duelNextShown: .res 2 ; next piece currently in duelNextBuf
@@ -373,7 +373,7 @@ garbageModifier: .res 1
 droughtModifier: .res 1
 dasModifier: .res 1
 lowStackRowModifier: .res 1
-duelModifier: .res 1 ; 1 - play until both players topped out
+duelModifier: .res 1 ; DUEL_OFF, DUEL_LEAD, DUEL_BOTH
 scoringModifier: .res 1
 crashModifier: .res 1
 strictFlag: .res 1 ;used for crash detection. If 1, the game will register a crash anytime there is a possibility of one.

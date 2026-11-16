@@ -115,7 +115,11 @@ pickTetriminoPre:
 :
         lda duelModifier
         beq @single
-        ; duel: same pieces for both players from their copy of set_seed
+        ; duel: same pieces for both players from their copy of set_seed.
+        ; rng_seed is swapped per player and no longer advances every frame,
+        ; step it per piece for the drought check
+        ldx #rng_seed
+        jsr generateNextPseudorandomNumber
         jsr pickTetriminoSeed
         jmp pickTetriminoPost
 @single:

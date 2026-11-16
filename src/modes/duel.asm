@@ -37,6 +37,9 @@
         op rng_seed+1, 52
         op spawnCount, 53
         op lagState, 54
+    .repeat 4, i
+        op lineClearStatsByType+i, 55+i ; read by testCrash
+    .endrepeat
 .endmacro
 
 .macro duelLoadByte addr, offset
@@ -50,7 +53,7 @@
 .endmacro
 
 .assert D_CRASH = 48, error, "D_CRASH does not match duelZpState"
-D_ABSOLUTE = 56 ; linecapState, invisibleFlag, currentFloor, hardDropGhostY, presetIndex, spawnDelay
+D_ABSOLUTE = 59 ; linecapState, invisibleFlag, currentFloor, hardDropGhostY, presetIndex, spawnDelay
 .assert D_INVISIBLE = D_ABSOLUTE+1, error, "D_INVISIBLE does not match"
 .assert D_STATUS >= D_ABSOLUTE+6, error, "D_STATUS overlaps swapped state"
 
@@ -415,6 +418,8 @@ duelEnd:
         sta duelState+DUEL_SIZE+D_VRAMROW
         sta duelState+D_COMPLETEDLINES
         sta duelState+DUEL_SIZE+D_COMPLETEDLINES
+        sta duelState+D_INVISIBLE ; show the result in invisible mode
+        sta duelState+DUEL_SIZE+D_INVISIBLE
         lda #$01
         sta duelState+D_STATUS
         sta duelState+DUEL_SIZE+D_STATUS
@@ -451,7 +456,7 @@ duelEnd:
         ; double killscreen has no level menu, start the next game directly
         lda #29
         sta levelNumber
-        lda #$00
+        lda #$FF ; gameModeState_next increments this to 0, initGameBackground
         sta gameModeState
         rts
 @levelMenu:

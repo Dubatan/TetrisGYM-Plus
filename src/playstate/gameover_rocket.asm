@@ -2,10 +2,7 @@ playState_checkStartGameOver:
 .if AUTO_WIN
         jmp @exitGame
 .endif
-        lda duelModifier
-        bne @noHz
         jsr hzControl
-@noHz:
 .if !ALWAYS_CURTAIN
         ; skip curtain / rocket when not qualling
         lda qualFlag

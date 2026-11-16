@@ -112,25 +112,16 @@ copyGraphicToPlayfieldAtCustomRow:
         lda multBy10Table,x
         clc
         adc #$02 ; indent
-        tax
+        sta playfieldAddr ; restored to 0 below. player 2 playfield in duel mode
         ldy #$00
 @copySuccessGraphic:
         lda (generalCounter),y
         beq @graphicCopied
-        pha
-        lda playfieldAddr+1
-        cmp #>(playfield+$100) ; duel player 2
-        pla
-        bcs @player2
-        sta playfield,x
-        bcc @next
-@player2:
-        sta playfield+$100,x
-@next:
-        inx
+        sta (playfieldAddr),y
         iny
         bne @copySuccessGraphic
 @graphicCopied: ; 0 in accumulator
+        sta playfieldAddr
         sta vramRow
         rts
 
