@@ -318,9 +318,10 @@ Who wins:
 Available in a duel: Tetris, Seed, Setups, B-Type, Floor, Crunch, (Quick)Tap, Transition, Marathon, Checkerboard, Garbage, Drought, DAS Delay, Low Stack, Killscreen ×2, Invisible, Hard Drop, as well as Scoring, Crash, Strict Crash, Disable Flash, Disable Pause, Goofy Foot (both controllers), Linecap, PAL Mode and Patched.
 
 * T-Spins, Stacking, Pace and Tap Quantity cannot be started with Duel on.
-* Hz Display, Input Display, Dark Mode, Block Tool, DAS Only and Qual Mode are ignored in a duel.
+* Input Display, Dark Mode, Block Tool and Qual Mode are ignored in a duel.
 * Crash: each player is checked separately. `CRASH` tops the player out instead of stopping the game; confetti, lag and graphics glitches are left out because they would affect both players.
-* Hard Drop: two pieces and two ghosts can exceed 8 sprites per scanline and flicker; very busy frames can lag.
+* Hard Drop: two pieces and two ghosts can exceed the 8 sprites per scanline of the NES. The pieces always stay visible, only the ghosts flicker then.
+* Hz Display and DAS Only are not available, the hz tracking only runs in single player.
 * The score is always shown with 8 digits.
 
 Either player can pause. After the result press `start` to play again (level menu, or directly for Killscreen ×2). Wins are counted until you return to the main menu. Highscores are not saved in a duel.
@@ -553,6 +554,18 @@ The title menu version line is set in `src/nametables/game_type_menu.js`.
 TetrisGYM supports being built for mappers NROM, MMC1, MMC3, MMC5, and CNROM.
 
 Run `node build.js -h` for a list of build options.
+
+### Tests
+
+The tests in `tests/` run the ROM in an emulator and need [Rust](https://rustup.rs/), on Windows also the Visual Studio Build Tools with the C++ workload. They read `tetris.nes` and `clean.nes` from the project folder, so build with `clean.nes` present first.
+
+```
+node build.js
+cd tests
+cargo run --release -- --test
+```
+
+`node build.js -t` builds and runs the tests in one step. Tests prefixed `plus:` cover Duel (nmi inside vblank, same pieces for both players) and Patched (level colours, level transitions).
 
 ---
 
