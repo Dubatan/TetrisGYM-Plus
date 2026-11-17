@@ -172,7 +172,7 @@ D_SCORE = 32
 D_BINSCORE = 36
 D_FLAGS = 45
 D_CRASH = 48
-D_INVISIBLE = 60
+D_INVISIBLE = 61
 D_STATUS = 66 ; 0 - playing, 1 - out. not part of the swapped state
 D_GOAL = 67 ; 1 - reached the b-type / checkerboard goal. not swapped
 
@@ -193,7 +193,8 @@ duelPlayer: .res 1 ; 0/1
 duelTmp: .res 3
 duelNmi: .res 6 ; temporaries only used inside nmi
 duelLowStackRow: .res 1 ; playfield row drawn as low stack line, $FF if none
-    .res $B2-(DUEL_SIZE*2)-16-2-2-1-1-1-3-6-1
+duelLoaded: .res 1 ; duelState offset of the player loaded in the main loop, $FF if none
+    .res $B2-(DUEL_SIZE*2)-16-2-2-1-1-1-3-6-1-1
     .res $F0-$B2 ; tspins scratch
 statsByType: .res $E ; $03F0
     .res 2

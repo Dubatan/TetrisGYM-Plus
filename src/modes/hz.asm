@@ -183,6 +183,9 @@ hzTap:
 
 ; X: value to store if left or right is newly pressed
 checkNegativeDelay:
+        ; hz is only tracked in single player, see playState_playerControlsActiveTetrimino
+        lda duelModifier
+        bne @ret
         ; the tail of entry delay has two paths: a normal path, and one where
         ; spawn delay is added (currently, tspins and debug mode)
         ; if the spawn delay is too large, we shouldn't update here

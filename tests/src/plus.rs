@@ -134,3 +134,66 @@ pub fn test_duel_pieces() {
     // consecutive equal pieces collapse to one entry, compare as far as both got
     assert_eq!(seq[0][..n], seq[1][..n]);
 }
+
+fn press_p2(emu: &mut NesState, buttons: u8) {
+    let mut flipped = 0u8;
+    for i in 0..8 {
+        flipped |= ((buttons >> i) & 1) << (7 - i);
+    }
+    emu.p2_input = flipped;
+}
+
+/// duel: select hides the next piece only for the player who pressed it
+pub fn test_duel_select() {
+    let mut emu = util::emulator(None);
+    start_game(&mut emu, |emu| set(emu, "duelModifier", 2));
+
+    let state = labels::get("duelState") as usize;
+    let size = labels::get("DUEL_SIZE") as usize;
+    let hide = |emu: &NesState, player: usize| {
+        // offset of hideNextPiece in duelZpState (src/modes/duel.asm)
+        emu.memory.iram_raw[state + player * size + 59]
+    };
+    assert_eq!((hide(&emu, 0), hide(&emu, 1)), (0, 0));
+
+    press_p2(&mut emu, crate::input::SELECT);
+    emu.run_until_vblank();
+    press_p2(&mut emu, 0);
+    for _ in 0..3 {
+        emu.run_until_vblank();
+    }
+    assert_eq!((hide(&emu, 0), hide(&emu, 1)), (0, 1), "player 2 select");
+
+    util::set_controller(&mut emu, 'T');
+    emu.run_until_vblank();
+    util::set_controller(&mut emu, '.');
+    for _ in 0..3 {
+        emu.run_until_vblank();
+    }
+    assert_eq!((hide(&emu, 0), hide(&emu, 1)), (1, 1), "player 1 select");
+}
+
+/// duel: the result text stays visible with the low stack line on its row
+pub fn test_duel_result_lowstack() {
+    let mut emu = util::emulator(None);
+    start_game(&mut emu, |emu| {
+        set(emu, "duelModifier", 2);
+        set(emu, "practiseType", labels::get("MODE_LOWSTACK") as u8);
+        set(emu, "lowStackRowModifier", 10); // line on row 9, where the result goes
+    });
+    assert_eq!(get(&emu, "duelLowStackRow"), 9);
+
+    // both players out on the same frame: draw
+    let state = labels::get("duelState") as usize;
+    let size = labels::get("DUEL_SIZE") as usize;
+    let status = labels::get("D_STATUS") as usize;
+    emu.memory.iram_raw[state + status] = 1;
+    emu.memory.iram_raw[state + size + status] = 1;
+    for _ in 0..10 {
+        emu.run_until_vblank();
+    }
+    assert_eq!(get(&emu, "duelLowStackRow"), 0xFF);
+    // row 9 of player 1 is drawn at nametable row 6 + 9, column 2
+    let text: Vec<u8> = (0..10).map(|x| emu.ppu.read_byte(&mut *emu.mapper, 0x2000 + 15 * 32 + 2 + x)).collect();
+    assert_eq!(text[3..7], [0x0D, 0x1B, 0x0A, 0x20], "DRAW expected, got {:02x?}", text);
+}

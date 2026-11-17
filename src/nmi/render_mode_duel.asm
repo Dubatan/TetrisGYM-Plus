@@ -76,8 +76,13 @@ duelNmiTile = duelNmi+5
 .endrepeat
 .endmacro
 
+; a player whose state is loaded in the main loop (lag frame) is skipped, the
+; main loop would overwrite the changes when it saves the state
 render_mode_duel:
-        lda duelState+D_PLAYSTATE
+        lda duelLoaded
+        bne :+
+        jmp @player2
+:       lda duelState+D_PLAYSTATE
         cmp #$04
         bne @player1Rows
         ldx #$00
@@ -97,7 +102,11 @@ render_mode_duel:
         duelCopyRows 0, playfield, duelVramLoPlayer1
 @player1RowsDone:
 @player2:
-        lda duelState+DUEL_SIZE+D_PLAYSTATE
+        lda duelLoaded
+        cmp #DUEL_SIZE
+        bne :+
+        jmp @hud
+:       lda duelState+DUEL_SIZE+D_PLAYSTATE
         cmp #$04
         bne @player2Rows
         ldx #DUEL_SIZE
@@ -224,7 +233,10 @@ duelLineClearingAnimation:
 
 ; x - offset into duelState, y - player
 duelRenderHud:
-        stx duelNmiBase
+        cpx duelLoaded
+        bne :+
+        rts
+:       stx duelNmiBase
         sty duelNmiPlayer
         lda duelState+D_FLAGS,x
         and #RENDER_LEVEL

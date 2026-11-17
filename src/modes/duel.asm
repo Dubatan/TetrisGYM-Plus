@@ -40,6 +40,13 @@
     .repeat 4, i
         op lineClearStatsByType+i, 55+i ; read by testCrash
     .endrepeat
+        op hideNextPiece, 59 ; select toggles it per player
+        op linecapState, 60
+        op invisibleFlag, 61
+        op currentFloor, 62
+        op hardDropGhostY, 63
+        op presetIndex, 64
+        op spawnDelay, 65
 .endmacro
 
 .macro duelLoadByte addr, offset
@@ -53,9 +60,8 @@
 .endmacro
 
 .assert D_CRASH = 48, error, "D_CRASH does not match duelZpState"
-D_ABSOLUTE = 59 ; linecapState, invisibleFlag, currentFloor, hardDropGhostY, presetIndex, spawnDelay
-.assert D_INVISIBLE = D_ABSOLUTE+1, error, "D_INVISIBLE does not match"
-.assert D_STATUS >= D_ABSOLUTE+6, error, "D_STATUS overlaps swapped state"
+.assert D_INVISIBLE = 61, error, "D_INVISIBLE does not match duelZpState"
+.assert D_STATUS >= 66, error, "D_STATUS overlaps swapped state"
 
 ; shortcut: these modes are not available in a duel (single player HUD or
 ; state that is not swapped), the menu does not start them
@@ -82,46 +88,22 @@ duelModeAllowed:
 duelLoadState:
         ldx duelBase
         duelZpState duelLoadByte
-        lda duelState+D_ABSOLUTE,x
-        sta linecapState
-        lda duelState+D_ABSOLUTE+1,x
-        sta invisibleFlag
-        lda duelState+D_ABSOLUTE+2,x
-        sta currentFloor
-        lda duelState+D_ABSOLUTE+3,x
-        sta hardDropGhostY
-        lda duelState+D_ABSOLUTE+4,x
-        sta presetIndex
-        lda duelState+D_ABSOLUTE+5,x
-        sta spawnDelay
         rts
 
 duelSaveState:
         ldx duelBase
         duelZpState duelSaveByte
-        lda linecapState
-        sta duelState+D_ABSOLUTE,x
-        lda invisibleFlag
-        sta duelState+D_ABSOLUTE+1,x
-        lda currentFloor
-        sta duelState+D_ABSOLUTE+2,x
-        lda hardDropGhostY
-        sta duelState+D_ABSOLUTE+3,x
-        lda presetIndex
-        sta duelState+D_ABSOLUTE+4,x
-        lda spawnDelay
-        sta duelState+D_ABSOLUTE+5,x
         rts
 
 ; called in gameModeState_initGameState before the first frame is rendered
 duelInit:
         lda #EMPTY_TILE
-        ldx #$00
-@clearPlayfield:
-        sta playfield+$100,x
+        ldx #>(playfield+$100)
+        ldy #>(playfield+$100)
+        jsr memset_page
+        ldx #$FF ; no player state is loaded, see render_mode_duel
+        stx duelLoaded
         inx
-        bne @clearPlayfield
-        ; x is 0
         stx duelState+D_STATUS
         stx duelState+DUEL_SIZE+D_STATUS
         stx duelState+D_GOAL
@@ -165,6 +147,7 @@ duelSaveBoth:
 ; x - offset into duelState
 duelUpdatePlayer:
         stx duelBase
+        stx duelLoaded ; the nmi leaves this player's saved state alone
         jsr duelLoadState
         ldx #$00
         lda duelBase
@@ -180,6 +163,13 @@ duelUpdatePlayer:
         clc
         adc #>playfield
         sta playfieldAddr+1
+        lda newlyPressedButtons ; done in updateCountersAndNonPlayerState for single player
+        and #BUTTON_SELECT
+        beq @noSelect
+        lda hideNextPiece
+        eor #$01
+        sta hideNextPiece
+@noSelect:
         ldx duelBase
         lda duelState+D_STATUS,x
         bne @stageSprites
@@ -246,7 +236,10 @@ duelUpdatePlayer:
         sta oamStagingLength
 @noGhost:
         jsr duelUpdateNextPiece
-        jmp duelSaveState
+        jsr duelSaveState
+        lda #$FF
+        sta duelLoaded
+        rts
 
 duelSpritePalette:
         .byte $02,$01
@@ -420,6 +413,8 @@ duelEnd:
         sta duelState+DUEL_SIZE+D_COMPLETEDLINES
         sta duelState+D_INVISIBLE ; show the result in invisible mode
         sta duelState+DUEL_SIZE+D_INVISIBLE
+        lda #$FF ; and not covered by the low stack line
+        sta duelLowStackRow
         lda #$01
         sta duelState+D_STATUS
         sta duelState+DUEL_SIZE+D_STATUS

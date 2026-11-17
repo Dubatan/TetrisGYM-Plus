@@ -3,6 +3,8 @@ gameModeState_updateCountersAndNonPlayerState:
         lda #$00
         sta oamStagingLength
         inc fallTimer
+        lda duelModifier ; per player in duelUpdatePlayer
+        bne @ret
         lda newlyPressedButtons_player1
         and #BUTTON_SELECT
         beq @ret
