@@ -68,12 +68,12 @@ gameModeState_initGameBackground:
 
 scoringBackground:
         ; patched mode: classic score shows hex digits past 999999 and the
-        ; lines counter stops at 3 digits, use 7 digits instead
+        ; lines counter stops at 3 digits, use 8 digits instead
         lda scoringModifier
         bne @storeScoring
         ldy patchedFlag
         beq @storeScoring
-        lda #SCORING_SEVENDIGIT
+        lda #SCORING_EIGHTDIGIT
 @storeScoring:
         sta scoringEffective
         ; draw dot and M
@@ -106,6 +106,13 @@ scoringBackground:
         bne @hiddenScoreLoop
         jmp @noSevenDigit
 @notHidden:
+        ; 8 digit
+        cmp #SCORING_EIGHTDIGIT
+        bne @notEightDigit
+        jsr bulkCopyToPpu
+        .addr eight_digit_nametable
+        jmp @noSevenDigit
+@notEightDigit:
         ; 7 digit
         cmp #SCORING_SEVENDIGIT
         bne @noSevenDigit
@@ -122,6 +129,21 @@ scoringBackground:
         sta PPUADDR
 
         lda scoringEffective
+        cmp #SCORING_EIGHTDIGIT
+        bne @notEightDigitTop
+        lda #$20 ; one column further left, see eight_digit_nametable
+        sta PPUADDR
+        lda #$B7
+        sta PPUADDR
+        lda highscores+highScoreNameLength
+        jsr twoDigsToPPU
+        lda highscores+highScoreNameLength+1
+        jsr twoDigsToPPU
+        lda highscores+highScoreNameLength+2
+        jsr twoDigsToPPU
+        lda highscores+highScoreNameLength+3
+        jmp twoDigsToPPU
+@notEightDigitTop:
         cmp #SCORING_SEVENDIGIT
         bne @otherTopScore
 
@@ -221,6 +243,24 @@ hzStats: ; stripe
         .byte $22, $23, $3, $1D, $A, $19 ; tap
         .byte $22, $63, $3, $D, $15, $22 ; dly
         .byte $22, $A3, $3, $D, $12, $1B ; dir
+        .byte $FF
+
+; 8 digits do not fit between the playfield and the screen edge with a box
+; around them. the right wall moves one column right like in 7 digit, the left
+; wall is dropped and the playfield frame next to it closes the box, so all
+; digits stay inside the safe area (x 184-247)
+eight_digit_nametable:
+        .byte $20, $5F, $41, $75 ; top right corner, column 31
+        .byte $20, $7F, $C7, $36 ; right wall
+        .byte $21, $5F, $41, $77 ; bottom right corner
+        .byte $20, $7E, $C7, $FF ; old right wall, column 30
+        .byte $20, $5E, $41, $34 ; top wall
+        .byte $21, $5E, $41, $37 ; bottom wall
+        .byte $20, $77, $C7, $FF ; old left wall, column 23
+        .byte $20, $57, $41, $34 ; top wall instead of the top left corner
+        .byte $21, $57, $41, $37 ; bottom wall instead of the bottom left corner
+        .byte $21, $17, $41, $0  ; 0
+        .byte $21, $1E, $41, $0  ; 0
         .byte $FF
 
 seven_digit_nametable:

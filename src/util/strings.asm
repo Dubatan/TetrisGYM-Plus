@@ -76,8 +76,8 @@ stringLookup:
         .byte stringFloat-stringLookup
         .byte stringScorecap-stringLookup
         .byte stringHidden-stringLookup
+        .byte stringEightDigit-stringLookup
         .byte stringNull-stringLookup ; reserved for future use
-        .byte stringNull-stringLookup
         .byte stringOff-stringLookup ; 8
         .byte stringOn-stringLookup
         .byte stringPause-stringLookup
@@ -109,6 +109,8 @@ stringLetters:
         .byte $7,'L','E','T','T','E','R','S'
 stringSevenDigit:
         .byte $6,'7','D','I','G','I','T'
+stringEightDigit:
+        .byte $6,'8','D','I','G','I','T'
 stringFloat:
         .byte $1,'M'
 stringScorecap:

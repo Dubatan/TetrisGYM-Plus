@@ -153,6 +153,12 @@ render_mode_play_and_demo:
         jmp @clearScoreRenderFlags
 @noSevenDigit:
 
+        cmp #SCORING_EIGHTDIGIT
+        bne @noEightDigit
+        jsr renderEightDigit
+        jmp @clearScoreRenderFlags
+@noEightDigit:
+
         ; millions
         lda scoringEffective
         cmp #SCORING_FLOAT

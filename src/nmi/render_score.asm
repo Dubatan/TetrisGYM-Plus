@@ -39,6 +39,16 @@ renderScoreCap:
         lda #$99
         jmp twoDigsToPPU
 
+; one column left of the other score modes, see eight_digit_nametable
+renderEightDigit:
+        lda #$21
+        sta PPUADDR
+        lda #$17
+        sta PPUADDR
+        lda score+3
+        jsr twoDigsToPPU
+        jmp renderBCDScoreData
+
 renderSevenDigit:
         jsr scoreSetupPPU
         lda score+3

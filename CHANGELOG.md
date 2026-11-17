@@ -4,6 +4,7 @@
 
 * Duel: two players on one screen with per player score, lines, level and next piece; a switch that works with most trainers, B-Type and Checkerboard are races to the goal
 * Patched: optional fixes for bugs of the original game
+* 8 Digit scoring, used by Patched instead of Classic
 * Fixed a glitch when using Crash Mode + Crunch Mode
 * Fixed some accuracy bugs in Crash Mode
 * Fixed a glitch in Hard Drop Mode

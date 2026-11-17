@@ -197,3 +197,64 @@ pub fn test_duel_result_lowstack() {
     let text: Vec<u8> = (0..10).map(|x| emu.ppu.read_byte(&mut *emu.mapper, 0x2000 + 15 * 32 + 2 + x)).collect();
     assert_eq!(text[3..7], [0x0D, 0x1B, 0x0A, 0x20], "DRAW expected, got {:02x?}", text);
 }
+
+fn nametable(emu: &mut NesState, address: u16, len: u16) -> Vec<u8> {
+    (0..len).map(|i| emu.ppu.read_byte(&mut *emu.mapper, address + i)).collect()
+}
+
+/// patched mode: classic scoring shows 8 digits, score and top score past 16 million
+pub fn test_patched_eight_digits() {
+    for (patched, scoring) in [(1, 0), (0, labels::get("SCORING_EIGHTDIGIT") as u8)] {
+        let mut emu = util::emulator(None);
+        start_game(&mut emu, |emu| {
+            set(emu, "patchedFlag", patched);
+            set(emu, "scoringModifier", scoring);
+            // top score 16,700,760 (bcd, most significant byte first)
+            let top = labels::get("highscores") as usize + 8;
+            emu.memory.iram_raw[top..top + 4].copy_from_slice(&[0x16, 0x70, 0x07, 0x60]);
+        });
+        assert_eq!(get(&emu, "scoringEffective"), labels::get("SCORING_EIGHTDIGIT") as u8);
+
+        // score 23,456,789 (bcd, least significant byte first)
+        let score = labels::get("score") as usize;
+        emu.memory.iram_raw[score..score + 4].copy_from_slice(&[0x89, 0x67, 0x45, 0x23]);
+        set(&mut emu, "renderFlags", labels::get("RENDER_SCORE") as u8);
+        for _ in 0..3 {
+            emu.run_until_vblank();
+        }
+
+        // row 5 and 8, columns 23-30
+        assert_eq!(nametable(&mut emu, 0x20B7, 8), [1, 6, 7, 0, 0, 7, 6, 0], "top score, patched {}", patched);
+        assert_eq!(nametable(&mut emu, 0x2117, 8), [2, 3, 4, 5, 6, 7, 8, 9], "score, patched {}", patched);
+        // box: right wall moved to column 31, left wall removed
+        assert_eq!(nametable(&mut emu, 0x211F, 1), [0x36]);
+        assert_eq!(nametable(&mut emu, 0x2077, 1), [0xFF]);
+    }
+}
+
+/// patched mode with hz display: nmi still finishes inside vblank with the
+/// 8 digit score, 4 digit lines and level drawn on the same frame
+pub fn test_patched_nmi() {
+    let mut emu = util::emulator(None);
+    start_game(&mut emu, |emu| {
+        set(emu, "patchedFlag", 1);
+        set(emu, "hzFlag", 1);
+        set(emu, "levelNumber", 18);
+    });
+    let flags = (labels::get("RENDER_LINES") | labels::get("RENDER_LEVEL") | labels::get("RENDER_SCORE")
+        | labels::get("RENDER_HZ") | labels::get("RENDER_STATS")) as u8;
+    let lines = labels::get("lines") as usize;
+    emu.memory.iram_raw[lines] = 0x99;
+    emu.memory.iram_raw[lines + 1] = 0x19; // 1999, 4 digit lines
+    set(&mut emu, "linesBCDHigh", 0x19);
+    for frame in 0..60 {
+        set(&mut emu, "renderFlags", flags);
+        while emu.registers.pc != labels::get("renderComplete") {
+            emu.step();
+            if emu.ppu.current_scanline == 261 {
+                panic!("render took too long! frame {}", frame);
+            }
+        }
+        emu.run_until_vblank();
+    }
+}

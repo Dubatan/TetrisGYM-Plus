@@ -354,6 +354,12 @@ __7 Digit__
 
 An extra scoring digit, rolls over at 10 million.
 
+__8 Digit__ (Plus)
+
+![8 Digit](./assets/screens/score-8digit.png)
+
+Two extra scoring digits, shows scores up to 99,999,999. The playfield frame closes the score box on the left, so all digits stay away from the screen edge.
+
 __M__
 
 ![M](./assets/screens/score-m.png)
@@ -532,7 +538,7 @@ Level 138 with Patched enabled: normal level colours instead of the glitched pal
 Fixes bugs of the original game that TetrisGYM otherwise keeps for accuracy. Off by default; with it enabled results are not comparable to the original game.
 
 * Level colours follow level mod 10 at every level, no glitched palettes from level 138
-* Classic score display switches to 7 digits and the lines counter to 4 digits
+* Classic score display switches to 8 digits (see [Scoring](#scoring)) and the lines counter to 4 digits
 * Piece statistics stop at 999
 * The first level transition happens at (start level + 1) × 10 lines for every start level, later ones every 10 lines; the level stops at 255 instead of wrapping to 0
 * Rerolled pieces are chosen evenly, the original favours some pieces depending on the previous one
