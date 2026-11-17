@@ -258,3 +258,113 @@ pub fn test_patched_nmi() {
         emu.run_until_vblank();
     }
 }
+
+// spin trainer: per spinVariant the orientation the piece enters in and the
+// button that rotates it into the slot (see src/modes/tspins.asm)
+const SPIN_ENTRY: [(u8, char); 7] = [
+    (0x01, 'A'), // T right
+    (0x03, 'B'), // T left
+    (0x09, 'A'), // Z vertical
+    (0x0C, 'A'), // S vertical
+    (0x0F, 'B'), // L left
+    (0x06, 'A'), // J right
+    (0x11, 'A'), // I vertical
+];
+const SPIN_TARGET: [u8; 7] = [0x02, 0x02, 0x08, 0x0B, 0x0E, 0x07, 0x12];
+
+fn piece_cells(orientation: u8, x: u8, y: u8) -> Vec<(i32, i32)> {
+    let rom = util::rom_data();
+    let tx = labels::get("orientationTableX") as usize - 0x8000;
+    let ty = labels::get("orientationTableY") as usize - 0x8000;
+    let o = orientation as usize * 4;
+    (0..4).map(|i| (x as i32 + rom[tx + o + i] as i8 as i32, y as i32 + rom[ty + o + i] as i8 as i32)).collect()
+}
+
+const PIECE_TYPE: [u8; 19] = [0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 3, 4, 4, 5, 5, 5, 5, 6, 6];
+const VARIANT_TYPE: [u8; 7] = [0, 0, 2, 4, 5, 1, 6];
+
+fn bin_score(emu: &NesState) -> u32 {
+    let a = labels::get("binScore") as usize;
+    u32::from_le_bytes(emu.memory.iram_raw[a..a + 4].try_into().unwrap())
+}
+
+/// spins: every piece can be rotated into its slot, and only that counts
+pub fn test_spins() {
+    // spinModifier T, Z, S, L, J, I -> possible spinVariant
+    let expected: [&[u8]; 6] = [&[0, 1], &[2], &[3], &[4], &[5], &[6]];
+    for (modifier, variants) in expected.iter().enumerate() {
+        for seed in 0..4u8 {
+            let mut emu = util::emulator(None);
+            start_game(&mut emu, |emu| {
+                set(emu, "practiseType", labels::get("MODE_TSPINS") as u8);
+                set(emu, "spinModifier", modifier as u8);
+                set(emu, "levelNumber", 18);
+            });
+            for _ in 0..seed * 3 + 1 {
+                emu.run_until_vblank();
+            }
+            let variant = get(&emu, "spinVariant");
+            assert!(variants.contains(&variant), "modifier {} variant {}", modifier, variant);
+            assert_eq!(PIECE_TYPE[get(&emu, "currentPiece") as usize], VARIANT_TYPE[variant as usize]);
+
+            let (x, y) = (8 - get(&emu, "tspinX"), 18 - get(&emu, "tspinY"));
+            let (entry, button) = SPIN_ENTRY[variant as usize];
+
+            // the entry orientation can fall into place, the final one can not
+            let target = SPIN_TARGET[variant as usize];
+            let empty = |c: &(i32, i32)| playfield::get(&emu, c.0 as u16, c.1 as u16) == 0xEF;
+            let falls_in = |o: u8| piece_cells(o, x, y).iter().all(|&(cx, cy)| {
+                (0..=cy).all(|row| empty(&(cx, row)))
+            });
+            assert!(piece_cells(entry, x, y).iter().all(|c| empty(c)), "variant {}: entry blocked", variant);
+            assert!(falls_in(entry), "variant {}: entry orientation can not fall into place", variant);
+            assert!(piece_cells(target, x, y).iter().all(|c| empty(c)), "variant {}: slot does not fit", variant);
+            assert!(!falls_in(target), "variant {}: no spin needed", variant);
+
+            set(&mut emu, "currentPiece", entry);
+            set(&mut emu, "tetriminoX", x);
+            set(&mut emu, "tetriminoY", y);
+            set(&mut emu, "fallTimer", 0);
+            set(&mut emu, "autorepeatY", 0);
+            assert_eq!(bin_score(&emu), 0);
+
+            util::set_controller(&mut emu, button);
+            emu.run_until_vblank();
+            util::set_controller(&mut emu, '.');
+            for _ in 0..3 {
+                emu.run_until_vblank();
+            }
+            assert!(bin_score(&emu) > 0, "modifier {} variant {} at {},{}: no success", modifier, variant, x, y);
+        }
+    }
+}
+
+/// spins, random: never an O piece, the slot always matches the piece
+pub fn test_spins_random() {
+    let mut emu = util::emulator(None);
+    start_game(&mut emu, |emu| {
+        set(emu, "practiseType", labels::get("MODE_TSPINS") as u8);
+        set(emu, "spinModifier", labels::get("SPIN_RANDOM") as u8);
+        set(emu, "levelNumber", 18);
+    });
+    let mut seen = [false; 7];
+    let mut last = (0xFF, 0xFF);
+    for _ in 0..4000 {
+        emu.run_until_vblank();
+        let piece = get(&emu, "currentPiece");
+        assert_ne!(get(&emu, "nextPiece"), 0x0A, "O as next piece");
+        if get(&emu, "playState") != 1 || piece >= 0x13 || get(&emu, "tetriminoX") == 0xEF {
+            last = (0xFF, 0xFF);
+            continue;
+        }
+        assert_ne!(piece, 0x0A, "O piece in spins");
+        let piece_type = PIECE_TYPE[piece as usize];
+        seen[piece_type as usize] = true;
+        // one frame after a new piece appears its slot must match
+        if last.0 == piece_type {
+            assert_eq!(VARIANT_TYPE[get(&emu, "spinVariant") as usize], piece_type);
+        }
+        last = (piece_type, 0);
+    }
+    assert!(seen.iter().filter(|s| **s).count() >= 5, "too few piece types: {:?}", seen);
+}

@@ -219,7 +219,7 @@ saveStateSlot: .res 1 ; $60B
 saveStateSpriteType: .res 1 ; $60C
 saveStateSpriteDelay: .res 1 ; $60D
 presetIndex: .res 1 ; $60E ; can be mangled in other modes
-.res 1
+spinVariant: .res 1 ; $60F ; slot of the spin trainer, see modes/tspins.asm
 debugLevelEdit: .res 1 ; $610
 debugNextCounter: .res 1 ; $611
 paceResult: .res 3 ; $612 ; 3 bytes
@@ -360,6 +360,7 @@ linecapHow: .res 1
 linecapLevel: .res 1
 linecapLines: .res 2
 menuVars: ; $76E
+spinModifier: .res 1 ; T, Z, S, L, J, I, SPIN_RANDOM
 paceModifier: .res 1
 presetModifier: .res 1
 typeBModifier: .res 1

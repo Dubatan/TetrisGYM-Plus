@@ -527,6 +527,12 @@ menuYTmp := tmp2
         sta oamStaging, x
         inx
         lda menuVars, y
+        ldy menuCounter
+        cpy #MODE_TSPINS
+        bne @plainValue
+        tay
+        lda spinMenuTiles, y ; piece letter instead of a number
+@plainValue:
         sta oamStaging, x
         inx
         lda #$00
@@ -603,6 +609,9 @@ menuYTmp := tmp2
         sta spriteIndexInOamContentLookup
         lda #<((MODE_DUEL*8) + MENU_SPRITE_Y_BASE + 1)
         jmp @renderOption
+
+spinMenuTiles:
+        .byte 'T', 'Z', 'S', 'L', 'J', 'I', '?'
 
 duelOptions:
         .byte $8, $1F, $20

@@ -18,7 +18,7 @@ Everything below is the TetrisGYM documentation, extended by the Plus features.
 * [Getting Started](#getting-started)
 * [Trainers](#trainers)
     * [Tetris](#tetris)
-    * [T-Spins](#t-spins)
+    * [Spins](#spins) (Plus: all pieces)
     * [Seed](#seed)
     * [Stacking](#stacking)
     * [Pace](#pace)
@@ -93,11 +93,25 @@ Like in the original ROM, holding `a` `b` `select` and then pressing `start` wil
 
 Same gameplay as A-Type, with some improvements: no score cap, no rocket, no curtain, no music, better pause, start on any level.
 
-### T-Spins
+### Spins
 
 ![T-Spins](./assets/screens/tspins.png)
 
-Spawn T-Spins in random positions. Additional entry delay on successful T-Spin to prepare for the next state.
+Spawn spin slots in random positions. Additional entry delay on a successful spin to prepare for the next state.
+
+Use left and right in the main menu to choose the piece (Plus):
+
+![Spins](./assets/screens/spins.png)
+
+* `T` - the original T-Spin trainer, overhang on either side
+* `Z` - Z dropped vertically, rotated flat under the overhang
+* `S` - S dropped vertically, rotated flat
+* `L` - L dropped as `L left`, rotated with `B`
+* `J` - J dropped as `J right`, rotated with `A`
+* `I` - I dropped vertically, rotated flat
+* `?` - any piece except O, each piece gets a slot of its own
+
+NES Tetris has no wall kicks, so a piece only spins into a slot when the rotated piece fits exactly. Only T and Z fill their slot cleanly. S, L, J and I leave a covered gap where the piece was before it rotated, like they do in a real game. O can not spin.
 
 ### Seed
 
@@ -317,7 +331,7 @@ Who wins:
 
 Available in a duel: Tetris, Seed, Setups, B-Type, Floor, Crunch, (Quick)Tap, Transition, Marathon, Checkerboard, Garbage, Drought, DAS Delay, Low Stack, Killscreen ×2, Invisible, Hard Drop, as well as Scoring, Crash, Strict Crash, Disable Flash, Disable Pause, Goofy Foot (both controllers), Linecap, PAL Mode and Patched.
 
-* T-Spins, Stacking, Pace and Tap Quantity cannot be started with Duel on.
+* Spins, Stacking, Pace and Tap Quantity cannot be started with Duel on.
 * Input Display, Dark Mode, Block Tool and Qual Mode are ignored in a duel.
 * Crash: each player is checked separately. `CRASH` tops the player out instead of stopping the game; confetti, lag and graphics glitches are left out because they would affect both players.
 * Hard Drop: two pieces and two ghosts can exceed the 8 sprites per scanline of the NES. The pieces always stay visible, only the ghosts flicker then.

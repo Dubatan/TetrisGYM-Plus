@@ -40,7 +40,7 @@ drawTiles(buffer, lookup, `
 #a                            d#
 #a                            d#
 #a    TETRIS                  d#
-#a    T-SPINS                 d#
+#a    SPINS                   d#
 #a    SEED                    d#
 #a    STACKING                d#
 #a    PACE                    d#

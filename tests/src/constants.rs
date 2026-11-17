@@ -24,5 +24,7 @@ pub fn test() {
     // check the menu scroll is correct
     let y_scroll = labels::get("MENU_MAX_Y_SCROLL");
 
-    assert_eq!(menu_options - 8, y_scroll / 8);
+    // one menu row per mode, 16 rows fit on screen (not one per config value:
+    // SPINS has a value but no extra row)
+    assert_eq!(qty - 16, y_scroll as usize / 8);
 }

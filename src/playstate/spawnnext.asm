@@ -126,9 +126,20 @@ pickTetriminoPre:
         jmp pickRandomTetrimino
 
 pickTetriminoT:
-        lda #$2
+        ldx spinModifier
+        cpx #SPIN_RANDOM
+        bcs @random
+        lda spinSpawnTable,x
         sta spawnID
         rts
+@random: ; any piece but O, the spin slot is made for whatever comes
+        jsr pickRandomTetrimino
+        cmp #$0A
+        beq @random
+        rts
+
+spinSpawnTable: ; spinModifier T, Z, S, L, J, I
+        .byte $02, $08, $0B, $0E, $07, $12
 
 pickTetriminoLongbar:
         lda #$12

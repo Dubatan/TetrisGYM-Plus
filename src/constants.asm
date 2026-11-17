@@ -116,6 +116,8 @@ MODE_QUANTITY = MODE_PATCHED + 1
 
 MODE_GAME_QUANTITY = MODE_HARDDROP + 1
 
+SPIN_RANDOM := 6 ; for spinModifier
+
 DUEL_OFF := 0 ; for duelModifier
 DUEL_LEAD := 1 ; ends as soon as the remaining player leads
 DUEL_BOTH := 2 ; ends when both players are out
@@ -149,7 +151,7 @@ MENU_TOP_MARGIN_SCROLL := 7 ; in blocks
 ; menu ram is defined at menuRAM in ./ram.asm
 .macro MENUSIZES
     .byte $0    ; MODE_TETRIS
-    .byte $0    ; MODE_TSPINS
+    .byte $6    ; MODE_TSPINS (SPINS)
     .byte $0    ; MODE_SEED
     .byte $0    ; MODE_PARITY
     .byte $F    ; MODE_PACE
@@ -193,7 +195,7 @@ MENU_TOP_MARGIN_SCROLL := 7 ; in blocks
 
 .macro MODENAMES
     .byte   "TETRIS"
-    .byte   "TSPINS"
+    .byte   " SPINS"
     .byte   " SEED "
     .byte   "STACKN"
     .byte   " PACE "
