@@ -339,7 +339,37 @@ pub fn test_spins() {
     }
 }
 
-/// spins, random: never an O piece, the slot always matches the piece
+/// rotate the piece in play into its slot, like a player would at the bottom
+fn do_spin(emu: &mut NesState) {
+    let variant = get(emu, "spinVariant") as usize;
+    let (x, y) = (8 - get(emu, "tspinX"), 18 - get(emu, "tspinY"));
+    let (entry, button) = SPIN_ENTRY[variant];
+    set(emu, "currentPiece", entry);
+    set(emu, "tetriminoX", x);
+    set(emu, "tetriminoY", y);
+    set(emu, "fallTimer", 0);
+    set(emu, "autorepeatY", 0);
+    util::set_controller(emu, button);
+    emu.run_until_vblank();
+    util::set_controller(emu, '.');
+}
+
+/// wait until the next piece is in play, checks it on the way
+fn wait_for_piece(emu: &mut NesState) -> u8 {
+    for _ in 0..200 {
+        emu.run_until_vblank();
+        assert_ne!(get(emu, "nextPiece"), 0x0A, "O as next piece");
+        let piece = get(emu, "currentPiece");
+        if get(emu, "playState") == 1 && piece < 0x13 && get(emu, "tetriminoX") != 0xEF {
+            assert_ne!(piece, 0x0A, "O piece in spins");
+            return piece;
+        }
+    }
+    panic!("no piece in play");
+}
+
+/// spins, random: a failed spin keeps the slot and the piece, a successful
+/// one brings a new random piece (never O) with a slot of its own
 pub fn test_spins_random() {
     let mut emu = util::emulator(None);
     start_game(&mut emu, |emu| {
@@ -347,24 +377,43 @@ pub fn test_spins_random() {
         set(emu, "spinModifier", labels::get("SPIN_RANDOM") as u8);
         set(emu, "levelNumber", 18);
     });
+    let slot = |emu: &NesState| (get(emu, "spinVariant"), get(emu, "tspinX"), get(emu, "tspinY"));
     let mut seen = [false; 7];
-    let mut last = (0xFF, 0xFF);
-    for _ in 0..4000 {
+    let mut changed = 0;
+    for round in 0..16 {
+        let piece = wait_for_piece(&mut emu);
+        emu.run_until_vblank(); // slot follows a new piece within one frame
+        let first = slot(&emu);
+        assert_eq!(VARIANT_TYPE[first.0 as usize], PIECE_TYPE[piece as usize], "round {}", round);
+        seen[PIECE_TYPE[piece as usize] as usize] = true;
+
+        // two failed attempts: the pieces just drop and lock somewhere
+        for attempt in 0..2 {
+            let mut frames = 0;
+            while get(&emu, "playState") == 1 {
+                emu.run_until_vblank();
+                frames += 1;
+                assert!(frames < 400, "piece never locked");
+            }
+            let again = wait_for_piece(&mut emu);
+            emu.run_until_vblank();
+            assert_eq!(PIECE_TYPE[again as usize], PIECE_TYPE[piece as usize], "round {} attempt {}: other piece after a miss", round, attempt);
+            assert_eq!(slot(&emu), first, "round {} attempt {}: slot changed after a miss", round, attempt);
+        }
+
+        let score = bin_score(&emu);
+        do_spin(&mut emu);
+        for _ in 0..3 {
+            emu.run_until_vblank();
+        }
+        assert!(bin_score(&emu) > score, "round {}: no success", round);
+        let next = wait_for_piece(&mut emu);
         emu.run_until_vblank();
-        let piece = get(&emu, "currentPiece");
-        assert_ne!(get(&emu, "nextPiece"), 0x0A, "O as next piece");
-        if get(&emu, "playState") != 1 || piece >= 0x13 || get(&emu, "tetriminoX") == 0xEF {
-            last = (0xFF, 0xFF);
-            continue;
+        if slot(&emu) != first {
+            changed += 1;
         }
-        assert_ne!(piece, 0x0A, "O piece in spins");
-        let piece_type = PIECE_TYPE[piece as usize];
-        seen[piece_type as usize] = true;
-        // one frame after a new piece appears its slot must match
-        if last.0 == piece_type {
-            assert_eq!(VARIANT_TYPE[get(&emu, "spinVariant") as usize], piece_type);
-        }
-        last = (piece_type, 0);
+        assert_eq!(VARIANT_TYPE[get(&emu, "spinVariant") as usize], PIECE_TYPE[next as usize], "round {}: slot does not match", round);
     }
-    assert!(seen.iter().filter(|s| **s).count() >= 5, "too few piece types: {:?}", seen);
+    assert!(changed >= 14, "slot only changed {} times after a success", changed);
+    assert!(seen.iter().filter(|s| **s).count() >= 4, "too few piece types: {:?}", seen);
 }

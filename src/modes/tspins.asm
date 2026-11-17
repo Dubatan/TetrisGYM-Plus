@@ -3,11 +3,11 @@
 ; A slot is cut into a filled floor, the piece only fits by rotating at the
 ; bottom: NES Tetris has no wall kicks. T and Z fill the slot cleanly, S, L, J
 ; and I leave a covered gap where the piece was before it rotated.
-; The slot is made for the piece in play, in random mode a piece of another
-; type gets a new slot.
+; The slot is made for the piece in play. Like with T, a failed spin is
+; retried with the same piece, random mode picks a new piece after a success.
 
 advanceGameTSpins:
-        ; random mode: new slot when the piece type changes
+        ; new slot when the piece does not match (slot left from another mode)
         lda playState
         cmp #1
         bne @typeOk
@@ -123,7 +123,8 @@ generateNewTSpin:
         lda #0
         sta tspinQuantity
 
-        ; slot for the piece in play, or the next one while it is hidden
+        ; slot for the piece in play, or the next one while it is hidden after
+        ; a successful spin. random mode picks that next piece now
         ldx currentPiece
         lda tetriminoX
         cmp #TETRIMINO_X_HIDE
@@ -131,6 +132,12 @@ generateNewTSpin:
         cpx #$13
         bcc @piece
 @next:
+        lda spinModifier
+        cmp #SPIN_RANDOM
+        bcc @nextPiece
+        jsr spinRandomPiece
+        sta nextPiece
+@nextPiece:
         ldx nextPiece
 @piece:
         lda tetriminoTypeFromOrientation,x
@@ -186,6 +193,28 @@ renderTSpin:
 @done:
         rts
 
+; random mode: called before the first pieces of a game are chosen
+spinsInitGame:
+        lda spinModifier
+        cmp #SPIN_RANDOM
+        bcc @ret
+        jsr spinRandomPiece
+        tax
+        lda tetriminoTypeFromOrientation,x
+        tax
+        lda spinVariantForType,x
+        sta spinVariant ; pickTetriminoT deals this piece
+        lda #0
+        sta tspinX ; slot made on the first frame
+@ret:   rts
+
+; -> a: spawn orientation of any piece but O
+spinRandomPiece:
+        jsr pickRandomTetrimino
+        cmp #$0A
+        beq spinRandomPiece
+        rts
+
 SPIN_CELLS_END = $80
 SPIN_VARIANT_I = 6
 
@@ -203,6 +232,9 @@ spinVariantCells:
 ; variant for each piece type T, J, Z, O, S, L, I (O never spawns here)
 spinVariantForType:
         .byte 0, 5, 2, 0, 3, 4, 6
+; spawn orientation for each piece type T, J, Z, O, S, L, I
+spinSpawnForType:
+        .byte $02, $07, $08, $0A, $0B, $0E, $12
 
 ; open cells relative to the piece position (row * 10 + column): the piece in
 ; its final orientation, plus the cells of the orientation it rotates from and

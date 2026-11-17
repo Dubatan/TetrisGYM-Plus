@@ -132,10 +132,11 @@ pickTetriminoT:
         lda spinSpawnTable,x
         sta spawnID
         rts
-@random: ; any piece but O, the spin slot is made for whatever comes
-        jsr pickRandomTetrimino
-        cmp #$0A
-        beq @random
+@random: ; the piece of the current slot, a new one comes after a success
+        ldx spinVariant
+        ldy spinVariantType,x
+        lda spinSpawnForType,y
+        sta spawnID
         rts
 
 spinSpawnTable: ; spinModifier T, Z, S, L, J, I

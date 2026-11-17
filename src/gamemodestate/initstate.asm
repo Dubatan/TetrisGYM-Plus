@@ -114,6 +114,11 @@ gameModeState_initGameState:
         ldx #$B4
 @ntsc:
         stx autorepeatY
+        lda practiseType
+        cmp #MODE_TSPINS
+        bne @noSpins
+        jsr spinsInitGame ; random spins: first piece
+@noSpins:
         jsr chooseNextTetrimino
         sta currentPiece
         jsr incrementPieceStat

@@ -109,7 +109,7 @@ Use left and right in the main menu to choose the piece (Plus):
 * `L` - L dropped as `L left`, rotated with `B`
 * `J` - J dropped as `J right`, rotated with `A`
 * `I` - I dropped vertically, rotated flat
-* `?` - any piece except O, each piece gets a slot of its own
+* `?` - a random piece except O. Like with the other pieces a slot stays until you spin into it, then a new random piece gets a slot of its own
 
 NES Tetris has no wall kicks, so a piece only spins into a slot when the rotated piece fits exactly. Only T and Z fill their slot cleanly. S, L, J and I leave a covered gap where the piece was before it rotated, like they do in a real game. O can not spin.
 
