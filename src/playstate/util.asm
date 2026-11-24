@@ -109,7 +109,7 @@ updateMusicSpeed:
         sta allegro
         ldx musicType
         lda musicSelectionTable,x
-        jsr setMusicTrack
+        jsr setMusicTrackSingle
         jmp @ret
 
 @foundBlockInRow:
@@ -124,8 +124,15 @@ updateMusicSpeed:
         adc #$04
         tax
         lda musicSelectionTable,x
-        jmp setMusicTrack
+        jmp setMusicTrackSingle
 @ret:   rts
+
+; duel: players switch fast music at different times, keep the normal speed
+setMusicTrackSingle:
+        ldy duelModifier
+        bne :+
+        jmp setMusicTrack
+:       rts
 
 checkIfAboveLowStackLine:
 ; carry set - block found
@@ -146,6 +153,8 @@ checkIfAboveLowStackLine:
 @foundBlockInRow:
         rts
 
+stopMusic:
+        lda #$FF
 ; canon is adjustMusicSpeed
 setMusicTrack:
 .if !NO_MUSIC

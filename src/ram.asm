@@ -391,6 +391,7 @@ dasOnlyFlag: .res 1
 qualFlag: .res 1
 palFlag: .res 1
 patchedFlag: .res 1
+musicModifier: .res 1 ; 0 off, 1-3 original music
 .if KEYBOARD = 1
 keyboardFlag: .res 1
 .endif

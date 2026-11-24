@@ -417,3 +417,45 @@ pub fn test_spins_random() {
     assert!(changed >= 14, "slot only changed {} times after a success", changed);
     assert!(seen.iter().filter(|s| **s).count() >= 4, "too few piece types: {:?}", seen);
 }
+
+/// triangle periods written during `frames` frames (the music's bass line,
+/// sound effects only use the square and noise channels)
+fn triangle_notes(emu: &mut NesState, frames: usize) -> std::collections::BTreeSet<u16> {
+    let mut notes = std::collections::BTreeSet::new();
+    for _ in 0..frames {
+        emu.run_until_vblank();
+        if emu.apu.triangle.period_initial != 0 {
+            notes.insert(emu.apu.triangle.period_initial);
+        }
+    }
+    notes
+}
+
+/// music: off by default, 1-3 play the original tracks, back in the menus it stops
+pub fn test_music() {
+    let mut by_track = Vec::new();
+    for music in 0..4u8 {
+        let mut emu = util::emulator(None);
+        start_game(&mut emu, |emu| {
+            set(emu, "musicModifier", music);
+            set(emu, "levelNumber", 18);
+        });
+        let notes = triangle_notes(&mut emu, 600);
+        if music == 0 {
+            assert!(notes.is_empty(), "music off but triangle plays {:?}", notes);
+        } else {
+            assert!(notes.len() >= 2, "music {}: only {} notes", music, notes.len());
+            by_track.push(notes);
+            // leave the game: the level menu stops the music
+            set(&mut emu, "gameMode", 3);
+            for _ in 0..30 {
+                emu.run_until_vblank();
+            }
+            // no new notes once the menu is up
+            let before = emu.apu.triangle.period_initial;
+            let left = triangle_notes(&mut emu, 120);
+            assert!(left.iter().all(|&p| p == before), "music {} keeps playing in the menu: {:?}", music, left);
+        }
+    }
+    assert!(by_track[0] != by_track[1] && by_track[1] != by_track[2], "tracks sound the same");
+}

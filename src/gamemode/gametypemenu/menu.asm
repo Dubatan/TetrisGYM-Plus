@@ -517,6 +517,10 @@ menuYTmp := tmp2
         bne :+
         jmp @renderDuelMode
 :
+        cmp #MODE_MUSIC
+        bne :+
+        jmp @renderMusicMode
+:
 
         jsr menuItemY16Offset
         bne @loopNext
@@ -609,6 +613,20 @@ menuYTmp := tmp2
         sta spriteIndexInOamContentLookup
         lda #<((MODE_DUEL*8) + MENU_SPRITE_Y_BASE + 1)
         jmp @renderOption
+
+@renderMusicMode:
+        jsr menuItemY16Offset
+        bne @musicOut
+        ldx musicModifier
+        lda musicOptions, x
+        sta spriteIndexInOamContentLookup
+        lda #<((MODE_MUSIC*8) + MENU_SPRITE_Y_BASE + 1)
+        jmp @renderOption
+@musicOut:
+        jmp @loopNext
+
+musicOptions:
+        .byte $8, $21, $22, $23
 
 spinMenuTiles:
         .byte 'T', 'Z', 'S', 'L', 'J', 'I', '?'

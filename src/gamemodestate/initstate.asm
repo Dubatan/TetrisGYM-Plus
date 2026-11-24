@@ -182,7 +182,12 @@ gameModeState_initGameState:
 @notDuelFinish:
         jsr resetScroll
 
-        ldx musicType
+        ; menu value 0 is off, musicType 3 is off in the original
+        ldx musicModifier
+        dex
+        bpl :+
+        ldx #3
+:       stx musicType
         lda musicSelectionTable,x
         jsr setMusicTrack
         inc gameModeState ; 2

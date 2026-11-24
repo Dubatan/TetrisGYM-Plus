@@ -57,6 +57,7 @@ Everything below is the TetrisGYM documentation, extended by the Plus features.
 * [DAS Only](#das-only)
 * [Qualifier Mode](#qual-mode)
 * [PAL Mode](#pal-mode)
+* [Music](#music-plus) (Plus)
 * [Patched](#patched) (Plus)
 * [Development](#development)
 
@@ -538,6 +539,12 @@ These features make TetrisGYM work better with post processing tools like [Nestr
 You can hold `select` when booting to start in Qual Mode.
 
 You cannot use the Block Tool and Qual mode at the same time.
+
+## Music (Plus)
+
+The original music, off by default like in TetrisGYM. `1`, `2` and `3` are the three tracks of the original level menu, including the faster version when the stack gets high. In a duel the music stays at normal speed. The high score entry plays the original congratulations tune.
+
+The title screen, B-Type and ending tunes are not included, TetrisGYM has no screens that use them.
 
 ## PAL Mode
 

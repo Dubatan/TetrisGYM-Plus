@@ -10,7 +10,8 @@ gameModeState_checkForResetKeyCombo:
 @continue:
         rts
 
-@reset: jsr updateAudio2
+@reset: jsr stopMusic
+        jsr updateAudio2
         lda #$2 ; straight to menu screen
         sta gameMode
         lda qualFlag

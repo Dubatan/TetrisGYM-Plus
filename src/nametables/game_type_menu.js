@@ -78,6 +78,7 @@ drawTiles(buffer, lookup, `
 #a    QUAL MODE               d#
 #a    PAL MODE                d#
 #a    PATCHED                 d#
+#a    MUSIC                   d#
 #a                            d#
 #a V6                         d#
 #a PLUS V1.0                  d#
@@ -92,11 +93,10 @@ drawTiles(buffer, lookup, `
 #a                            d#
 #a                            d#
 #a                            d#
-#a                            d#
 `);
 
 if (process.env['GYM_FLAGS']?.match(/-D KEYBOARD=1/)) {
-    drawTiles(extra, lookup, "KEYBOARD", 32 * 17 + 6);
+    drawTiles(extra, lookup, "KEYBOARD", 32 * 18 + 6);
     }
 
 const background = `
@@ -141,7 +141,7 @@ drawRect(buffer, 8, 2, 10, 5, 0xB0); // draw logo
     .forEach((tile, i) => { buffer[7 * 32 + 11 + i] = tile; });
 
 const urlX = 3;
-const urlY = 18;
+const urlY = 19;
 drawRect(extra, urlX, urlY, 12, 1, 0x74);
 drawRect(extra, urlX+12, urlY, 12, 1, 0x84);
 

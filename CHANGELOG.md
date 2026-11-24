@@ -6,6 +6,7 @@
 * Patched: optional fixes for bugs of the original game
 * 8 Digit scoring, used by Patched instead of Classic
 * T-Spins trainer is now Spins: slots for T, Z, S, L, J, I or a random piece
+* Music option: the original tracks 1-3 are back, off by default
 * Fixed a glitch when using Crash Mode + Crunch Mode
 * Fixed some accuracy bugs in Crash Mode
 * Fixed a glitch in Hard Drop Mode

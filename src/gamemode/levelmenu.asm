@@ -1,6 +1,7 @@
 gameMode_levelMenu:
         lda #NMIEnable
         sta currentPpuCtrl
+        jsr stopMusic
         jsr updateAudio2
         lda #$7
         sta renderMode

@@ -58,7 +58,7 @@ struct TestOptions {
 fn main() {
     let options = TestOptions::parse_args_default_or_exit();
 
-    let tests: [(&str, fn()); 27] = [
+    let tests: [(&str, fn()); 28] = [
         ("garbage4", garbage::test_garbage4_crash),
         ("floor", floor::test),
         ("tspins", tspins::test),
@@ -86,6 +86,7 @@ fn main() {
         ("plus: patched nmi", plus::test_patched_nmi),
         ("plus: spins", plus::test_spins),
         ("plus: spins random", plus::test_spins_random),
+        ("plus: music", plus::test_music),
     ];
 
     // run tests
